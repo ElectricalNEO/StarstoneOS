@@ -111,7 +111,8 @@ _start:
 	
 	lea esi, [ebx + 16]
 	lea edi, [initrd_name]
-	rep cmpsb
+	mov ecx, [initrd_name_len]
+	repe cmpsb
 	
 	jne .skip_module_tag
 	
@@ -227,7 +228,8 @@ gdt:
 	dd (2 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
 .end:
 
-initrd_name: db "initrd_grub", 0
+initrd_name: db "initrd", 0
+initrd_name_len: db $ - initrd_name
 
 section .bootstrap.bss nobits
 
