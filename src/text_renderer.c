@@ -1,8 +1,11 @@
 #include "text_renderer.h"
+#include "stdarg.h"
+#include "string.h"
 
 struct framebuffer* _framebuffer;
 struct psf_header* _font;
 uint32_t _chx, _chy;
+char _itoa_buf[21];
 
 int init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font) {
     
@@ -79,5 +82,44 @@ void puts(char* str) {
         str++;
         
     }
+    
+}
+
+void printf(char* fmt, ...) {
+    
+    va_list args;
+    va_start(args, fmt);
+    
+    while(*fmt) {
+        
+        if(*fmt == '%') {
+            
+            fmt++;
+            switch(*fmt) {
+                
+            case 'd':
+                puts(itoa(va_arg(args, uint64_t), _itoa_buf, 10));
+                break;
+            case 's':
+                puts(va_arg(args, char*));
+                break;
+            case 'x':
+                puts(itoa(va_arg(args, uint64_t), _itoa_buf, 16));
+                break;
+            case 'c':
+                putc(va_arg(args, int));
+                break;
+            default:
+                putc('%');
+                
+            }
+            
+        } else putc(*fmt);
+        
+        fmt++;
+        
+    }
+    
+    va_end(args);
     
 }
