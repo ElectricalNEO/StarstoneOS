@@ -2,17 +2,25 @@
 #include "framebuffer.h"
 #include "initrd.h"
 #include "tar.h"
-#include "psf.h"
 #include "text_renderer.h"
-#include "string.h"
+#include "memory.h"
 
-int main(struct framebuffer* framebuffer, struct initrd* initrd) {
+int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
-    struct psf_header* font = tar_open_file((void*)(uint64_t)initrd->address, "zap-light24.psf");
-    init_text_renderer(framebuffer, font);
+    init_text_renderer(framebuffer, tar_open_file((void*)(uint64_t)initrd->address, "zap-light24.psf"));
     
     puts("Starstone 1.0 Ahlspiess\n");
-    printf("%%d: %d\n%%s: %s\n%%x: %x\n%%c: %c\n", 123, "Hello world!", 0x12ab, '!');
+    
+    uint64_t total_memory = 0;
+    
+    for(struct memory_map_entry* entry = memory_map->entries; (uint64_t)entry + memory_map->entry_size < (uint64_t)memory_map + memory_map->size; entry = (struct memory_map_entry*)((uint64_t)entry + memory_map->entry_size)) {
+        
+        printf("0x%x - %s\n", entry->base, memory_type_strings[entry->type < 6 ? entry->type : 0]);
+        total_memory += entry->length;
+        
+    }
+    
+    printf("RAM installed: %d B", total_memory);
     
     while(1);
     

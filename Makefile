@@ -31,7 +31,7 @@ Starstone.iso: bin/starkrnl grub.cfg initrd.tar
 	rm -r iso
 	
 run: Starstone.iso
-	qemu-system-x86_64 -cdrom $<
+	qemu-system-x86_64 -cdrom $< -m 1G
 
 clean:
 	-rm -r bin

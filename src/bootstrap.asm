@@ -123,6 +123,20 @@ _start:
 	mov [initrd_grub.size], esi
 	
 .skip_module_tag:
+	cmp dword [ebx], 6
+	jne .skip_memory_map_tag
+	
+	sub esp, [ebx + 4]
+	add esp, 4
+	mov [memory_map], esp
+	
+	lea esi, [ebx + 4]
+	mov edi, [memory_map]
+	mov ecx, [ebx + 4]
+	sub ecx, 4
+	rep movsb
+	
+.skip_memory_map_tag:
 	mov edx, [ebx + 4]
 	add edx, 7
 	and edx, 0b11111111111111111111111111111000
@@ -272,6 +286,8 @@ initrd:
 .address: resq 1
 .size: resd 1
 
+memory_map: resd 1
+
 [bits 64]
 section .bootstrap.text
 
@@ -382,6 +398,9 @@ start64:
 	
 	lea rdi, [framebuffer + 0xffffffff80000000]
 	lea rsi, [initrd + 0xffffffff80000000]
+	xor rdx, rdx
+	mov edx, [memory_map]
+	add rdx, 0xffffffff80000000
 	
 	mov rax, 0xffffffff00000000
 	or rax, main

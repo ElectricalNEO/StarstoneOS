@@ -16,6 +16,14 @@ int strcmp(char* str1, char* str2) {
 
 char* itoa(uint64_t value, char* str, int base) {
     
+    if(!value) {
+        
+        str[0] = '0';
+        str[1] = 0;
+        return str;
+        
+    }
+    
     uint64_t v = value;
     uint8_t numbers = 0;
     while(v) {
