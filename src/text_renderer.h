@@ -8,3 +8,4 @@ void clear();
 void putc(char ch);
 void puts(char* str);
 void printf(char* fmt, ...);
+void scroll();

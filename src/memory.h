@@ -26,3 +26,5 @@ struct memory_map {
     struct memory_map_entry entries[0];
     
 }__attribute__((packed));
+
+void memcpy(void* src, void* dst, uint64_t n);

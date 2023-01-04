@@ -4,6 +4,7 @@
 #include "tar.h"
 #include "text_renderer.h"
 #include "memory.h"
+#include "bitmap.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -20,7 +21,31 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         
     }
     
-    printf("RAM installed: %d B", total_memory);
+    printf("RAM installed: %d B\n", total_memory);
+    
+    uint64_t bitmap = 0;
+    
+    BITMAP_SET(&bitmap, 1);
+    BITMAP_SET(&bitmap, 4);
+    BITMAP_SET(&bitmap, 5);
+    BITMAP_SET(&bitmap, 10);
+    BITMAP_SET(&bitmap, 16);
+    BITMAP_SET(&bitmap, 17);
+    BITMAP_SET(&bitmap, 20);
+    BITMAP_SET(&bitmap, 32);
+    BITMAP_SET(&bitmap, 47);
+    BITMAP_SET(&bitmap, 48);
+    BITMAP_SET(&bitmap, 49);
+    BITMAP_SET(&bitmap, 50);
+    BITMAP_SET(&bitmap, 51);
+    BITMAP_SET(&bitmap, 52);
+    BITMAP_CLEAR(&bitmap, 50);
+    
+    for(uint8_t i = 0; i < 64; i++) {
+        
+        if(BITMAP_GET(&bitmap, i)) printf("%d\n", i);
+        
+    }
     
     while(1);
     

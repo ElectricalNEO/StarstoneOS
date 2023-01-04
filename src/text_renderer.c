@@ -1,6 +1,7 @@
 #include "text_renderer.h"
 #include "stdarg.h"
 #include "string.h"
+#include "memory.h"
 
 struct framebuffer* _framebuffer;
 struct psf_header* _font;
@@ -43,6 +44,7 @@ void putc(char ch) {
         
         _chx = _font->height / 2;
         _chy += _font->height;
+        if(_chy + _font->height >= _framebuffer->height) scroll();
         return;
         
     }
@@ -69,6 +71,7 @@ void putc(char ch) {
         
         _chx = _font->height / 2;
         _chy += _font->height;
+        if(_chy + _font->height >= _framebuffer->height) scroll();
         
     }
     
@@ -121,5 +124,15 @@ void printf(char* fmt, ...) {
     }
     
     va_end(args);
+    
+}
+
+void scroll() {
+    
+    memcpy((void*)(_framebuffer->address + _framebuffer->pitch * _font->height), (void*)_framebuffer->address, _framebuffer->pitch * _framebuffer->height - _font->height);
+    _chy -= _font->height;
+    for(uint64_t y = _framebuffer->height - _font->height; y < _framebuffer->height; y++)
+        for(uint64_t x = 0; x < _framebuffer->width; x++)
+            *(uint64_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0x0000ff;
     
 }
