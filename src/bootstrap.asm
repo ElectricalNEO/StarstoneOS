@@ -170,9 +170,9 @@ _start:
 	cmp ecx, 1024
 	jne .loop
 	
-	;;;;;;;;;;;;;;;;;;
-	;;; MAP KERNEL ;;;
-	;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;; MAP KERNEL & ACTIVATE RECURSIVE MAPPING ;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	mov eax, pdpt_kernel
 	or eax, 0b11
@@ -186,6 +186,10 @@ _start:
 	
 	mov eax, 0b10000011
 	mov [pd_kernel], eax
+	
+	mov eax, pml4
+	or eax, 0b11
+	mov [pml4 + 508 * 8], eax
 	
 	;;;;;;;;;;;;;;;;;;
 	;;; ENABLE PAE ;;;
@@ -395,6 +399,22 @@ start64:
 	mov [initrd.address], rax
 	mov eax, [initrd_grub.size]
 	mov [initrd.size], eax
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;; JUMP TO HIGHER HALF ;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	mov rax, 0xffffffff00000000
+	or rax, higher_half
+	jmp rax
+
+section .text
+higher_half:
+	mov dword [pml4], 0
+	
+	;;;;;;;;;;;;;;;;;
+	;;; CALL MAIN ;;;
+	;;;;;;;;;;;;;;;;;
 	
 	lea rdi, [framebuffer + 0xffffffff80000000]
 	lea rsi, [initrd + 0xffffffff80000000]

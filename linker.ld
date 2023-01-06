@@ -3,7 +3,7 @@ ENTRY(_start)
 SECTIONS {
 	
 	. = 0x100000;
-
+	
 	.bootstrap.text : ALIGN (0x1000) {
 		*(.multiboot)
 		*(.bootstrap.text)
@@ -27,7 +27,7 @@ SECTIONS {
 		*(.data)
 	}
 	
-	.bss : ALIGN (0x1000) {
+	.bss ALIGN (0x1000) : AT (ADDR(.bss) - 0xffffffff80000000) {
 		*(COMMON)
 		*(.bss)
 	}
@@ -36,5 +36,7 @@ SECTIONS {
 		*(.rodata)
 		*(.rodata.*)
 	}
+	
+	KERNEL_END = ALIGN(4K);
 	
 }

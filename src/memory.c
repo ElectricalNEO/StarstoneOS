@@ -9,6 +9,22 @@ char* memory_type_strings[] = {
     "BADRAM"
 };
 
+uint64_t memory_size = 0;
+
+uint64_t get_memory_size(struct memory_map* memory_map) {
+    
+    if(memory_size) return memory_size;
+    
+    for(struct memory_map_entry* entry = memory_map->entries; (uint64_t)entry + memory_map->entry_size < (uint64_t)memory_map + memory_map->size; entry = (struct memory_map_entry*)((uint64_t)entry + memory_map->entry_size)) {
+        
+        memory_size += entry->length;
+        
+    }
+    
+    return memory_size;
+    
+}
+
 void memcpy(void* src, void* dst, uint64_t n) {
     
     for(uint64_t i = 0; i < n; i++) {

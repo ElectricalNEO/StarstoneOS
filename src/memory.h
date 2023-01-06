@@ -27,4 +27,6 @@ struct memory_map {
     
 }__attribute__((packed));
 
+uint64_t get_memory_size(struct memory_map* memory_map);
+
 void memcpy(void* src, void* dst, uint64_t n);
