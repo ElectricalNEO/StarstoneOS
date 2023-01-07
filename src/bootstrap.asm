@@ -219,7 +219,7 @@ _start:
 	;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;; LOAD GDT AND JUMP ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;
-	lgdt [gdtr]
+	lgdt [gdtr_bootstrap]
 	jmp dword 8:start64
 
 error:
@@ -230,11 +230,11 @@ error:
 
 section .bootstrap.data
 
-gdtr:
-	dw gdt.end - gdt - 1
-	dd gdt
+gdtr_bootstrap:
+	dw gdt_bootstrap.end - gdt_bootstrap - 1
+	dq gdt_bootstrap
 
-gdt:
+gdt_bootstrap:
 .null:
 	dd 0
 	dd 0
@@ -250,9 +250,6 @@ initrd_name: db "initrd", 0
 initrd_name_len: db $ - initrd_name
 
 section .bootstrap.bss nobits
-
-resb 16*1024
-stack: ; stack grows downwards
 
 align 4096
 pml4: resb 4096
@@ -275,6 +272,9 @@ pd_framebuffer: resb 4096
 align 4096
 pd_initrd: resb 4096
 
+resb 16*1024
+stack: ; stack grows downwards
+
 framebuffer:
 .address: resq 1
 .pitch: resd 1
@@ -296,20 +296,26 @@ memory_map: resd 1
 section .bootstrap.text
 
 start64:
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;;; SET SEGMENT REGISTERS ;;;
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;; FIX STACK AND LOAD NEW GDT ;;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	add rsp, 0xffffffff80000000
+	lgdt [gdtr]
+	
+	;;;;;;;;;;;;;;;;;;;;;;;
+	;;; RELOAD SEGMENTS ;;;
+	;;;;;;;;;;;;;;;;;;;;;;;
+	push 8
+	lea rax, [rel .reload_cs]
+	push rax
+	retfq
+.reload_cs:
 	mov rax, 0x10
 	mov ds, rax
 	mov es, rax
 	mov fs, rax
 	mov gs, rax
 	mov ss, rax
-	
-	;;;;;;;;;;;;;;;;;
-	;;; FIX STACK ;;;
-	;;;;;;;;;;;;;;;;;
-	add rsp, 0xffffffff80000000
 	
 	;;;;;;;;;;;;;;;;;;;;;;;
 	;;; MAP FRAMEBUFFER ;;;
@@ -403,26 +409,39 @@ start64:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;; JUMP TO HIGHER HALF ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
 	mov rax, 0xffffffff00000000
 	or rax, higher_half
 	jmp rax
 
 section .text
 higher_half:
-	mov dword [pml4], 0
-	
+	mov qword [pml4], 0
 	;;;;;;;;;;;;;;;;;
 	;;; CALL MAIN ;;;
 	;;;;;;;;;;;;;;;;;
-	
 	lea rdi, [framebuffer + 0xffffffff80000000]
 	lea rsi, [initrd + 0xffffffff80000000]
 	xor rdx, rdx
 	mov edx, [memory_map]
 	add rdx, 0xffffffff80000000
 	
-	mov rax, 0xffffffff00000000
-	or rax, main
+	mov rax, main
 	call rax
 	jmp $
+
+section .data
+gdtr:
+	dw gdt.end - gdt - 1
+	dq gdt
+
+gdt:
+.null:
+	dd 0
+	dd 0
+.code:
+	dd 0xffff
+	dd (10 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
+.data:
+	dd 0xffff
+	dd (2 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
+.end:

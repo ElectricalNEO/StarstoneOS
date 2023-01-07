@@ -7,6 +7,8 @@
 #include "page_frame_allocator.h"
 #include "paging.h"
 
+extern struct gdt_pointer gdt_pointer;
+
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
     init_text_renderer(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
@@ -23,11 +25,9 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
     }
     
     uint64_t a = request_page_frame();
-    map_page(a, 0x100000000);
-    
-    uint8_t* b = 0x100000000;
-    b[0] = 15;
-    printf("%d\n", b[0]);
+    map_page(a, 0);
+    uint8_t* b = 0;
+    memset(b, 4096, 0x15);
     
     while(1);
     

@@ -1,5 +1,4 @@
 #include "paging.h"
-#include "text_renderer.h"
 #include "page_frame_allocator.h"
 
 void map_page(uint64_t physical_address, uint64_t virtual_address) {
@@ -17,6 +16,7 @@ void map_page(uint64_t physical_address, uint64_t virtual_address) {
     if(!PDE_GET_FLAG(pml4[pml4_i], PDE_FLAG_PRESENT)) {
         
         pml4[pml4_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | request_page_frame();
+        memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE, pml4_i), 4096, 0);
         
     }
     
@@ -24,6 +24,7 @@ void map_page(uint64_t physical_address, uint64_t virtual_address) {
     if(!PDE_GET_FLAG(pdpt[pdpt_i], PDE_FLAG_PRESENT)) {
         
         pdpt[pdpt_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | request_page_frame();
+        memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, pml4_i, pdpt_i), 4096, 0);
         
     }
     
@@ -31,6 +32,7 @@ void map_page(uint64_t physical_address, uint64_t virtual_address) {
     if(!PDE_GET_FLAG(pd[pd_i], PDE_FLAG_PRESENT)) {
         
         pd[pd_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | request_page_frame();
+        memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, pml4_i, pdpt_i, pd_i), 4096, 0);
         
     }
     

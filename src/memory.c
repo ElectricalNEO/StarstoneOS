@@ -1,4 +1,5 @@
 #include "memory.h"
+#include "text_renderer.h"
 
 char* memory_type_strings[] = {
     "UNKNOWN",
@@ -13,7 +14,8 @@ uint64_t memory_size = 0;
 
 uint64_t get_memory_size(struct memory_map* memory_map) {
     
-    if(memory_size) return memory_size;
+    //if(memory_size) return memory_size;
+    memory_size = 0;
     
     for(struct memory_map_entry* entry = memory_map->entries; (uint64_t)entry + memory_map->entry_size < (uint64_t)memory_map + memory_map->size; entry = (struct memory_map_entry*)((uint64_t)entry + memory_map->entry_size)) {
         
@@ -33,4 +35,13 @@ void memcpy(void* src, void* dst, uint64_t n) {
         
     }
     
+}
+
+void memset(void* s, uint64_t n, uint8_t c) {
+    
+    for(uint64_t i = 0; i < n; i++) {
+        
+        *(uint8_t*)((uint64_t)s + i) = c;
+        
+    }
 }
