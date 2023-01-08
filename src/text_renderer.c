@@ -129,7 +129,7 @@ void printf(char* fmt, ...) {
 
 void scroll() {
     
-    memcpy((void*)(_framebuffer->address + _framebuffer->pitch * _font->height), (void*)_framebuffer->address, _framebuffer->pitch * _framebuffer->height - _font->height);
+    memcpy((void*)(_framebuffer->address + _framebuffer->pitch * _font->height), (void*)_framebuffer->address, _framebuffer->pitch * (_framebuffer->height - _font->height));
     _chy -= _font->height;
     for(uint64_t y = _framebuffer->height - _font->height; y < _framebuffer->height; y++)
         for(uint64_t x = 0; x < _framebuffer->width; x++)
