@@ -5,9 +5,8 @@
 #include "text_renderer.h"
 #include "memory.h"
 #include "page_frame_allocator.h"
-#include "paging.h"
-
-extern struct gdt_pointer gdt_pointer;
+#include "idt.h"
+#include "interrupts.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -24,10 +23,9 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         
     }
     
-    uint64_t a = request_page_frame();
-    map_page(a, 0);
-    uint8_t* b = 0;
-    memset(b, 4096, 0x15);
+    init_idt();
+    
+    printf("Interrupts enabled!\n");
     
     while(1);
     

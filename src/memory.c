@@ -14,8 +14,7 @@ uint64_t memory_size = 0;
 
 uint64_t get_memory_size(struct memory_map* memory_map) {
     
-    //if(memory_size) return memory_size;
-    memory_size = 0;
+    if(memory_size) return memory_size;
     
     for(struct memory_map_entry* entry = memory_map->entries; (uint64_t)entry + memory_map->entry_size < (uint64_t)memory_map + memory_map->size; entry = (struct memory_map_entry*)((uint64_t)entry + memory_map->entry_size)) {
         
