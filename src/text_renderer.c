@@ -1,7 +1,7 @@
 #include "text_renderer.h"
-#include "stdarg.h"
+#include <stdarg.h>
 #include "string.h"
-#include "memory.h"
+#include "memory/memory.h"
 
 struct framebuffer* _framebuffer;
 struct psf_header* _font;

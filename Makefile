@@ -18,7 +18,7 @@ bin/%_c.o: src/%.c
 	@mkdir -p $(@D)
 	@gcc -m64 -c $< -o $@ -ffreestanding -z max-page-size=0x1000 -mno-red-zone -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables -std=gnu99 -O2 -Wall -Wextra -masm=intel
 
-bin/interrupts_c.o: src/interrupts.c
+bin/interrupts/interrupts_c.o: src/interrupts/interrupts.c
 	@echo "\033[36;1mCOMPILING $@...\033[0m"
 	@mkdir -p $(@D)
 	@gcc -m64 -c $< -o $@ -ffreestanding -z max-page-size=0x1000 -mno-red-zone -mgeneral-regs-only -mno-mmx -mno-sse -mno-sse2 -fno-asynchronous-unwind-tables -std=gnu99 -O2 -Wall -Wextra -masm=intel

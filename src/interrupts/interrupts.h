@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "../common.h"
 
 struct interrupt_frame;
 __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame);

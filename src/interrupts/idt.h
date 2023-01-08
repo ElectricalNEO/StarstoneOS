@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "../common.h"
 
 #define GATE_OFFSET_LOW(offset) ((uint64_t)offset & 0xffff)
 #define GATE_OFFSET_MID(offset) (((uint64_t)offset >> 16) & 0xffff)

@@ -1,7 +1,7 @@
 #include "idt.h"
-#include "page_frame_allocator.h"
-#include "paging.h"
-#include "text_renderer.h"
+#include "../memory/page_frame_allocator.h"
+#include "../memory/paging.h"
+#include "../text_renderer.h"
 #include "interrupts.h"
 #include "pic.h"
 

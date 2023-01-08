@@ -1,5 +1,4 @@
 #include "memory.h"
-#include "text_renderer.h"
 
 char* memory_type_strings[] = {
     "UNKNOWN",

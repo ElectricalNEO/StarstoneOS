@@ -1,6 +1,6 @@
 #include "interrupts.h"
-#include "text_renderer.h"
-#include "port.h"
+#include "../text_renderer.h"
+#include "../port.h"
 #include "pic.h"
 
 __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {

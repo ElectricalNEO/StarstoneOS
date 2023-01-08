@@ -3,10 +3,9 @@
 #include "initrd.h"
 #include "tar.h"
 #include "text_renderer.h"
-#include "memory.h"
-#include "page_frame_allocator.h"
-#include "idt.h"
-#include "interrupts.h"
+#include "memory/memory.h"
+#include "memory/page_frame_allocator.h"
+#include "interrupts/idt.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     

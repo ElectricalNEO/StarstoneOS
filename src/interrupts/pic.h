@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common.h"
 
 #define PIC1 0x20
 #define PIC2 0xa0
