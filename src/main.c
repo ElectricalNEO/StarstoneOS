@@ -6,6 +6,7 @@
 #include "memory/memory.h"
 #include "memory/page_frame_allocator.h"
 #include "interrupts/idt.h"
+#include "input/keyboard.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -24,7 +25,12 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
     
     init_idt();
     
-    printf("Interrupts enabled!\n");
+    printf(">>> ");
+    while(1) {
+        
+        printf("%c", getc());
+        
+    }
     
     while(1);
     
