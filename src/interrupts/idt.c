@@ -7,11 +7,12 @@
 
 struct gate_descriptor* idt = 0;
 
-void init_idt() {
+uint8_t init_idt() {
     
     uint64_t idt_phys = request_page_frame();
+    if(!idt_phys) return 1;
+    if(map_page(idt_phys, 0)) return 1;
     
-    map_page(idt_phys, 0);
     memset(0, 4096, 0);
     
     for(uint8_t i = 0; i < 255; i++) {
@@ -34,6 +35,8 @@ void init_idt() {
     pic_slave_set_mask(0b11111111);
     
     asm("sti");
+    
+    return 0;
     
 }
 
