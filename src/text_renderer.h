@@ -3,9 +3,6 @@
 #include "framebuffer.h"
 #include "psf.h"
 
-int init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font);
-void clear();
-void putc(char ch);
-void puts(char* str);
-void printf(char* fmt, ...);
-void scroll();
+void init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font);
+void tr_putc(char ch);
+void tr_puts(char* str);

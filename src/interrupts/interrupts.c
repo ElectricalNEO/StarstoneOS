@@ -1,5 +1,5 @@
 #include "interrupts.h"
-#include "../text_renderer.h"
+#include "../terminal.h"
 #include "../port.h"
 #include "pic.h"
 #include "../input/keyboard.h"
@@ -13,7 +13,7 @@ __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
 __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
     
     UNUSED(frame);
-    printf("Page fault!\n");
+    puts("Page fault!\n");
     while(1);
     
 }

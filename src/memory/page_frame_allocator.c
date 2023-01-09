@@ -6,7 +6,7 @@ void* page_bitmap = 0;
 uint64_t total_pages;
 extern void* KERNEL_END;
 
-int init_page_frame_allocator(struct memory_map* memory_map, struct initrd* initrd) {
+int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer* framebuffer, struct initrd* initrd) {
     
     total_pages = (get_memory_size(memory_map) + 4095) / 4096;
     uint64_t bitmap_size = (total_pages + 7) / 8;
@@ -59,6 +59,12 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct initrd* init
     }
     
     for(uint64_t i = (initrd->address - 0xfffffe8000000000) / 4096; i < (initrd->address - 0xfffffe8000000000) / 4096 + (initrd->size + 4095) / 4096; i++) {
+        
+        BITMAP_SET(page_bitmap, i);
+        
+    }
+    
+    for(uint64_t i = (framebuffer->address - 0xffffff0000000000) / 4096; i < (framebuffer->address - 0xffffff0000000000) / 4096 + ((framebuffer->pitch * framebuffer->height * framebuffer->bpp / 8) + 4095) / 4096; i++) {
         
         BITMAP_SET(page_bitmap, i);
         
