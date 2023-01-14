@@ -4,7 +4,7 @@
 struct memory_chunk {
     
     struct memory_chunk* prev;
-    uint64_t size;
+    struct memory_chunk* next;
     uint8_t used;
     
 };

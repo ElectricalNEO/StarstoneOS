@@ -11,6 +11,7 @@ struct terminal_backend {
     struct psf_header* font;
     uint16_t ch_x;
     uint16_t ch_y;
+    volatile char stdin_buffer;
     
 };
 
@@ -31,6 +32,17 @@ void terminal_clear(struct terminal* term) {
     
     term->backend->ch_x = 0;
     term->backend->ch_y = 0;
+    term->backend->stdin_buffer = 0;
+    
+}
+
+void terminal_scroll(struct terminal* term) {
+    
+    memcpy((void*)(term->backend->terminal_buffer + term->backend->framebuffer->pitch * term->backend->font->height), (void*)term->backend->terminal_buffer, term->backend->framebuffer->pitch * (term->backend->framebuffer->height - term->backend->font->height));
+    memset((void*)(term->backend->terminal_buffer + term->backend->framebuffer->pitch * (term->backend->framebuffer->height - term->backend->font->height)), term->backend->framebuffer->pitch * term->backend->font->height, 0);
+    term->backend->ch_y -= term->backend->font->height;
+    if(active_terminal == term)
+        memcpy((void*)term->backend->terminal_buffer, (void*)term->backend->framebuffer->address, term->backend->framebuffer->pitch * term->backend->framebuffer->height);
     
 }
 
@@ -40,6 +52,42 @@ void terminal_putc(struct terminal* term, char ch) {
         
         term->backend->ch_x = 0;
         term->backend->ch_y += term->backend->font->height;
+        if(term->backend->ch_y + term->backend->font->height >= term->backend->framebuffer->height) terminal_scroll(term);
+        return;
+        
+    } else if(ch == '\b') {
+        
+        if(term->backend->ch_x) term->backend->ch_x -= term->backend->font->width;
+        else if(term->backend->ch_y) {
+            
+            term->backend->ch_x = term->backend->framebuffer->width - term->backend->font->width;
+            term->backend->ch_y -= term->backend->font->height;
+            if(term->backend->ch_y + term->backend->font->height >= term->backend->framebuffer->height) terminal_scroll(term);
+            
+        } else return;
+        
+        for(uint32_t y = 0; y < term->backend->font->height; y++) {
+            for(uint32_t x = 0; x < term->backend->font->width; x++) {
+                *(uint32_t*)((uint64_t)term->backend->terminal_buffer + (y + term->backend->ch_y) * term->backend->framebuffer->pitch + (x + term->backend->ch_x) * term->backend->framebuffer->bpp / 8) = 0;
+                if(active_terminal == term)
+                    *(uint32_t*)((uint64_t)term->backend->framebuffer->address + (y + term->backend->ch_y) * term->backend->framebuffer->pitch + (x + term->backend->ch_x) * term->backend->framebuffer->bpp / 8) = 0;
+                
+            }
+        }
+        return;
+        
+    } else if(ch == '\t') {
+        
+        term->backend->ch_x += 4 * term->backend->font->width - term->backend->ch_x % (4 * term->backend->font->width);
+        
+        if(term->backend->ch_x + term->backend->font->width > term->backend->framebuffer->width) {
+            
+            term->backend->ch_x = 0;
+            term->backend->ch_y += term->backend->font->height;
+            if(term->backend->ch_y + term->backend->font->height >= term->backend->framebuffer->height) terminal_scroll(term);
+            
+        }
+        
         return;
         
     }
@@ -66,10 +114,11 @@ void terminal_putc(struct terminal* term, char ch) {
     }
     term->backend->ch_x += term->backend->font->width;
     
-    if(term->backend->ch_x + term->backend->font->height >= term->backend->framebuffer->width - term->backend->font->height / 2) {
+    if(term->backend->ch_x + term->backend->font->width > term->backend->framebuffer->width) {
         
         term->backend->ch_x = 0;
         term->backend->ch_y += term->backend->font->height;
+        if(term->backend->ch_y + term->backend->font->height >= term->backend->framebuffer->height) terminal_scroll(term);
         
     }
     
@@ -79,6 +128,14 @@ void terminal_printf(struct terminal* term, char* fmt, ...) {
     
     va_list args;
     va_start(args, fmt);
+    
+    term->vprintf(term, fmt, args);
+    
+    va_end(args);
+    
+}
+
+void terminal_vprintf(struct terminal* term, char* fmt, va_list args) {
     
     while(*fmt) {
         
@@ -110,8 +167,6 @@ void terminal_printf(struct terminal* term, char* fmt, ...) {
         
     }
     
-    va_end(args);
-    
 }
 
 void terminal_activate(struct terminal* term) {
@@ -131,6 +186,61 @@ void terminal_puts(struct terminal* term, char* str) {
     }
     
 }
+
+char terminal_getc(struct terminal* term) {
+    
+    while(!term->backend->stdin_buffer);
+    char ret = term->backend->stdin_buffer;
+    term->backend->stdin_buffer = 0;
+    return ret;
+    
+}
+
+char* terminal_gets(struct terminal* term) {
+    
+    char input[255];
+    uint8_t len = 0;
+    
+    while(1) {
+        
+        char ch = term->getc(term);
+        if(ch == '\b') {
+            
+            if(len) {
+                input[len] = 0;
+                len--;
+                term->putc(term, '\b');
+            }
+            
+        } else if (ch == '\n') {
+            
+            term->putc(term, '\n');
+            input[len] = 0;
+            
+            void* ret = malloc(len + 1);
+            if(!ret) return 0;
+            memcpy(input, ret, len + 1);
+            return ret;
+            
+        } else if(len < 254) {
+            
+            input[len] = ch;
+            len++;
+            term->putc(term, ch);
+            
+        }
+        
+    }
+    
+}
+
+void terminal_stdin_write(struct terminal* term, char ch) {
+    
+    term->backend->stdin_buffer = ch;
+    
+}
+
+
 
 struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_header* font) {
     
@@ -161,7 +271,11 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
     term->putc = terminal_putc;
     term->puts = terminal_puts;
     term->printf = terminal_printf;
+    term->vprintf = terminal_vprintf;
     term->activate = terminal_activate;
+    term->getc = terminal_getc;
+    term->gets = terminal_gets;
+    term->stdin_write = terminal_stdin_write;
     
     term->backend->framebuffer = framebuffer;
     term->backend->font = font;
@@ -174,7 +288,11 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
     
 }
 
+
+
 void clear() {
+    
+    if(!active_terminal) return;
     
     terminal_clear(active_terminal);
     
@@ -182,11 +300,15 @@ void clear() {
 
 void putc(char ch) {
     
+    if(!active_terminal) return;
+    
     terminal_putc(active_terminal, ch);
     
 }
 
 void puts(char* str) {
+    
+    if(!active_terminal) return;
     
     terminal_puts(active_terminal, str);
     
@@ -194,39 +316,35 @@ void puts(char* str) {
 
 void printf(char* fmt, ...) {
     
+    if(!active_terminal) return;
+    
     va_list args;
     va_start(args, fmt);
-    
-    while(*fmt) {
-        
-        if(*fmt == '%') {
-            
-            fmt++;
-            switch(*fmt) {
-                
-            case 'd':
-                puts(itoa(va_arg(args, uint64_t), _itoa_buf, 10));
-                break;
-            case 's':
-                puts(va_arg(args, char*));
-                break;
-            case 'x':
-                puts(itoa(va_arg(args, uint64_t), _itoa_buf, 16));
-                break;
-            case 'c':
-                putc(va_arg(args, int));
-                break;
-            default:
-                putc('%');
-                
-            }
-            
-        } else putc(*fmt);
-        
-        fmt++;
-        
-    }
-    
+    active_terminal->vprintf(active_terminal, fmt, args);
     va_end(args);
+    
+}
+
+char getc() {
+    
+    if(!active_terminal) return 0;
+    
+    return active_terminal->getc(active_terminal);
+    
+}
+
+char* gets() {
+    
+    if(!active_terminal) return 0;
+    
+    return active_terminal->gets(active_terminal);
+    
+}
+
+void stdin_write(char ch) {
+    
+    if(!active_terminal) return;
+    
+    active_terminal->stdin_write(active_terminal, ch);
     
 }

@@ -7,6 +7,7 @@
 #include "interrupts/idt.h"
 #include "memory/heap.h"
 #include "terminal.h"
+#include "string.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -37,6 +38,18 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         
     }
     
-    while(1);
+    while(1) {
+        
+        puts(">>> ");
+        char* text = gets();
+        if(text) {
+            
+            printf("INPUT: %s\n", text);
+            free(text);
+            
+        }
+        else puts("ERROR: Failed to read from stdin!\n");
+        
+    }
     
 }

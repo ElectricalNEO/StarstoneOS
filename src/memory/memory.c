@@ -27,9 +27,15 @@ uint64_t get_memory_size(struct memory_map* memory_map) {
 
 void memcpy(void* src, void* dst, uint64_t n) {
     
-    for(uint64_t i = 0; i < n; i++) {
+    for(uint64_t i = 0; i < n / 8; i++) {
         
-        *(uint8_t*)((uint64_t)dst + i) = *(uint8_t*)((uint64_t)src + i);
+        ((uint64_t*)dst)[i] = ((uint64_t*)src)[i];
+        
+    }
+    
+    for(uint8_t i = 0; i < n % 8; i++) {
+        
+        ((uint64_t*)dst)[n / 8 + i] = ((uint64_t*)src)[n / 8 + i];
         
     }
     
@@ -42,4 +48,5 @@ void memset(void* s, uint64_t n, uint8_t c) {
         *(uint8_t*)((uint64_t)s + i) = c;
         
     }
+    
 }
