@@ -22,7 +22,19 @@ __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
 __attribute__((interrupt)) void int_21h(struct interrupt_frame* frame) {
     
     UNUSED(frame);
-    stdin_write(scancode_to_ascii[inb(0x60)]);
+    uint8_t scancode = inb(0x60);
+    if(scancode == SCANCODE_LSHIFT_PRESS || scancode == SCANCODE_RSHIFT_PRESS) shift = 1;
+    if(scancode == SCANCODE_LSHIFT_RELEASE || scancode == SCANCODE_RSHIFT_RELEASE) shift = 0;
+    if(scancode == SCANCODE_CAPSLOCK_PRESS) capslock = !capslock;
+    else {
+        
+        if(!shift && !capslock) stdin_write(scancode_to_ascii[scancode]);
+        else if(shift && !capslock) stdin_write(scancode_to_ascii_shift[scancode]);
+        else if(!shift && capslock) stdin_write(scancode_to_ascii_capslock[scancode]);
+        else stdin_write(scancode_to_ascii_capslock_shift[scancode]);
+        
+    }
+    
     pic_end_master();
     
 }
