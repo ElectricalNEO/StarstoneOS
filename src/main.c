@@ -7,7 +7,7 @@
 #include "interrupts/idt.h"
 #include "memory/heap.h"
 #include "terminal.h"
-#include "string.h"
+#include "pci.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -38,6 +38,32 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         
     }
     
+	struct pci_device device;
+	
+	for(uint16_t bus = 0; bus < 256; bus++) {
+		
+		for(uint8_t device_id = 0; device_id < 32; device_id++) {
+			
+			device = pci_get_device(bus, device_id, 0);
+			if(device.vendor_id == 0xffff) continue;
+			
+			uint8_t functions = pci_device_is_multifunction(bus, device_id) ? 8 : 1;
+			for(uint8_t function = 0;;) {
+				
+				if(device.vendor_id == 0xffff) break;
+				printf("DEVICE -- VENDOR: 0x%x -- CLASS: 0x%x -- SUBCLASS: 0x%x -- INTERFACE: 0x%x\n", device.vendor_id, device.class, device.subclass, device.interface);
+				
+				function++;
+				if(function >= functions) break;
+				
+				device = pci_get_device(bus, device_id, function);
+				
+			}
+			
+		}
+		
+	}
+	
     while(1) {
         
         puts(">>> ");

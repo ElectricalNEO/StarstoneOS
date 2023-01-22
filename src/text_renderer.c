@@ -16,14 +16,14 @@ void init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font
         
         for(uint32_t y = 0; y < framebuffer->height; y++)
             for(uint32_t x = 0; x < framebuffer->width; x++)
-                *(uint64_t*)(framebuffer->address + y * framebuffer->pitch + x * framebuffer->bpp / 8) = 0xff0000;
+                *(uint32_t*)(framebuffer->address + y * framebuffer->pitch + x * framebuffer->bpp / 8) = 0xff0000;
         while(1);
         
     }
     
     for(uint32_t y = 0; y < _framebuffer->height; y++)
         for(uint32_t x = 0; x < _framebuffer->width; x++)
-            *(uint64_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0x0000ff;
+            *(uint32_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0x0000ff;
     
     _chx = 0;
     _chy = 0;

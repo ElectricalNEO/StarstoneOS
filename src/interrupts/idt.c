@@ -15,7 +15,7 @@ uint8_t init_idt() {
     
     memset(0, 4096, 0);
     
-    for(uint8_t i = 0; i < 255; i++) {
+    for(uint16_t i = 0; i < 256; i++) {
         
         set_interrupt_gate(i, int_ignore);
         
