@@ -1,5 +1,9 @@
 [bits 32]
 
+KERNEL_VIRT equ 0xffffffff80000000
+FRAMEBUFFER_VIRT equ 0xffffff8040000000
+INITRD_VIRT equ 0xffffff8080000000
+
 extern main
 global _start
 
@@ -160,8 +164,6 @@ _start:
 .loop:
 	lea eax, [pml4 + ecx * 4]
 	lea eax, [pdpt_kernel + ecx * 4]
-	lea eax, [pdpt_framebuffer + ecx * 4]
-	lea eax, [pdpt_initrd + ecx * 4]
 	lea eax, [pd_kernel + ecx * 4]
 	lea eax, [pd_framebuffer + ecx * 4]
 	lea eax, [pd_initrd + ecx * 4]
@@ -189,7 +191,7 @@ _start:
 	
 	mov eax, pml4
 	or eax, 0b11
-	mov [pml4 + 508 * 8], eax
+	mov [pml4 + 510 * 8], eax
 	
 	;;;;;;;;;;;;;;;;;;
 	;;; ENABLE PAE ;;;
@@ -258,12 +260,6 @@ align 4096
 pdpt_kernel: resb 4096
 
 align 4096
-pdpt_framebuffer: resb 4096
-
-align 4096
-pdpt_initrd: resb 4096
-
-align 4096
 pd_kernel: resb 4096
 
 align 4096
@@ -299,7 +295,7 @@ start64:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;;; FIX STACK AND LOAD NEW GDT ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	add rsp, 0xffffffff80000000
+	add rsp, KERNEL_VIRT
 	lgdt [gdtr]
 	
 	;;;;;;;;;;;;;;;;;;;;;;;
@@ -320,13 +316,9 @@ start64:
 	;;;;;;;;;;;;;;;;;;;;;;;
 	;;; MAP FRAMEBUFFER ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;
-	mov eax, pdpt_framebuffer
-	or eax, 0b11
-	mov [pml4 + 510 * 8], eax
-	
 	mov eax, pd_framebuffer
 	or eax, 0b11
-	mov [pdpt_framebuffer], eax
+	mov [pdpt_kernel + 8], eax
 	
 	mov eax, [framebuffer.pitch]
 	mul dword [framebuffer.height]
@@ -356,20 +348,16 @@ start64:
 	
 	mov rax, [framebuffer.address]
 	and rax, 0x1fffff
-	mov rbx, 0xffffff0000000000
+	mov rbx, FRAMEBUFFER_VIRT
 	add rax, rbx
 	mov [framebuffer.address], rax
 	
 	;;;;;;;;;;;;;;;;;;
 	;;; MAP INITRD ;;;
 	;;;;;;;;;;;;;;;;;;
-	mov eax, pdpt_initrd
-	or eax, 0b11
-	mov [pml4 + 509 * 8], eax
-	
 	mov eax, pd_initrd
 	or eax, 0b11
-	mov [pdpt_initrd], eax
+	mov [pdpt_kernel + 8 * 2], eax
 	
 	mov eax, [initrd_grub.size]
 	add eax, 0x200000 - 1
@@ -400,7 +388,7 @@ start64:
 	xor rax, rax
 	mov eax, [initrd_grub.address]
 	and rax, 0x1fffff
-	mov rbx, 0xfffffe8000000000
+	mov rbx, INITRD_VIRT
 	add rax, rbx
 	mov [initrd.address], rax
 	mov eax, [initrd_grub.size]
@@ -419,11 +407,11 @@ higher_half:
 	;;;;;;;;;;;;;;;;;
 	;;; CALL MAIN ;;;
 	;;;;;;;;;;;;;;;;;
-	lea rdi, [framebuffer + 0xffffffff80000000]
-	lea rsi, [initrd + 0xffffffff80000000]
+	lea rdi, [framebuffer + KERNEL_VIRT]
+	lea rsi, [initrd + KERNEL_VIRT]
 	xor rdx, rdx
 	mov edx, [memory_map]
-	add rdx, 0xffffffff80000000
+	add rdx, KERNEL_VIRT
 	
 	mov rax, main
 	call rax

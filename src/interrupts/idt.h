@@ -9,6 +9,8 @@
 #define INTERRUPT_GATE 0xe
 #define TRAP_GATE 0xe
 
+#define IDT_ADDRESS 0xffffffffbffff000
+
 struct gate_descriptor {
     
     uint16_t offset_low;

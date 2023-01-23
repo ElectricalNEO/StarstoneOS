@@ -12,7 +12,7 @@
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
     init_text_renderer(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
-    
+	
     if(init_page_frame_allocator(memory_map, framebuffer, initrd)) {
         
         tr_puts("ERROR: Failed to initialize page frame allocator!\n");

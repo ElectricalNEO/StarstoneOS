@@ -5,15 +5,15 @@
 #include "interrupts.h"
 #include "pic.h"
 
-struct gate_descriptor* idt = 0;
+struct gate_descriptor* idt = (struct gate_descriptor*)IDT_ADDRESS;
 
 uint8_t init_idt() {
     
     uint64_t idt_phys = request_page_frame();
     if(!idt_phys) return 1;
-    if(map_page(idt_phys, 0)) return 1;
+    if(map_page(idt_phys, IDT_ADDRESS)) return 1;
     
-    memset(0, 4096, 0);
+    memset((void*)IDT_ADDRESS, 4096, 0);
     
     for(uint16_t i = 0; i < 256; i++) {
         
@@ -25,7 +25,7 @@ uint8_t init_idt() {
     set_interrupt_gate(0x21, int_21h);
     
     struct idtr idtr;
-    idtr.offset = 0;
+    idtr.offset = IDT_ADDRESS;
     idtr.size = 4095;
     
     asm("lidt %0" : : "m" (idtr));

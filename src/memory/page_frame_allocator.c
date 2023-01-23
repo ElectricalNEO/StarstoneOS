@@ -19,8 +19,8 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
         if(entry->type != MULTIBOOT_MEMORY_AVAILABLE) continue;
         for(uint64_t page = (entry->base + 0x1fffff) / 0x200000 * 0x200000; page + 0x200000 < entry->base + entry->length; page+=0x200000) {
             
-            if(page >= 0x100000 && page < (uint64_t)&KERNEL_END - 0xffffffff80000000) continue;
-            if(page >= initrd->address - 0xfffffe8000000000 && page < initrd->address - 0xfffffe8000000000 + initrd->size) continue;
+            if(page >= 0x100000 && page < (uint64_t)&KERNEL_END - KERNEL_VIRT) continue;
+            if(page >= initrd->address - INITRD_VIRT && page < initrd->address - INITRD_VIRT + initrd->size) continue;
             bitmap_page_frames[cur_page] = page;
             cur_page++;
             if(cur_page == bitmap_pages) goto end;
@@ -52,19 +52,19 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
         
     }
     
-    for(uint64_t i = 0; i < ((uint64_t)&KERNEL_END - 0xffffffff80000000 - 0x100000 + 4095) / 4096; i++) {
+    for(uint64_t i = 0; i < ((uint64_t)&KERNEL_END - KERNEL_VIRT - 0x100000 + 4095) / 4096; i++) {
         
         BITMAP_SET(page_bitmap, 0x100000 + i);
         
     }
     
-    for(uint64_t i = (initrd->address - 0xfffffe8000000000) / 4096; i < (initrd->address - 0xfffffe8000000000) / 4096 + (initrd->size + 4095) / 4096; i++) {
+    for(uint64_t i = (initrd->address - INITRD_VIRT) / 4096; i < (initrd->address - INITRD_VIRT) / 4096 + (initrd->size + 4095) / 4096; i++) {
         
         BITMAP_SET(page_bitmap, i);
         
     }
     
-    for(uint64_t i = (framebuffer->address - 0xffffff0000000000) / 4096; i < (framebuffer->address - 0xffffff0000000000) / 4096 + ((framebuffer->pitch * framebuffer->height * framebuffer->bpp / 8) + 4095) / 4096; i++) {
+    for(uint64_t i = (framebuffer->address - FRAMEBUFFER_VIRT) / 4096; i < (framebuffer->address - FRAMEBUFFER_VIRT) / 4096 + ((framebuffer->pitch * framebuffer->height * framebuffer->bpp / 8) + 4095) / 4096; i++) {
         
         BITMAP_SET(page_bitmap, i);
         

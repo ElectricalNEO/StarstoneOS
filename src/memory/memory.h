@@ -7,7 +7,7 @@
 #define MULTIBOOT_MEMORY_NVS 4
 #define MULTIBOOT_MEMORY_BADRAM 5
 
-char* memory_type_strings[6];
+extern char* memory_type_strings[6];
 
 struct memory_map_entry {
     
