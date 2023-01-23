@@ -21,16 +21,10 @@ void init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font
         
     }
     
-    for(uint32_t y = 0; y < _framebuffer->height; y++)
-        for(uint32_t x = 0; x < _framebuffer->width; x++)
-            *(uint32_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0x0000ff;
-    
-    _chx = 0;
-    _chy = 0;
-    
+	clear();
 }
 
-void tr_putc(char ch) {
+void putc(char ch) {
     
     if(ch == '\n') {
         
@@ -67,13 +61,24 @@ void tr_putc(char ch) {
     
 }
 
-void tr_puts(char* str) {
+void puts(char* str) {
     
     while(*str) {
         
-        tr_putc(*str);
+        putc(*str);
         str++;
         
     }
     
+}
+
+void clear() {
+	
+	for(uint32_t y = 0; y < _framebuffer->height; y++)
+        for(uint32_t x = 0; x < _framebuffer->width; x++)
+            *(uint32_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0x0000ff;
+    
+    _chx = 0;
+    _chy = 0;
+	
 }

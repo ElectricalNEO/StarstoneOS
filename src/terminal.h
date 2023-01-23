@@ -3,6 +3,7 @@
 #include "common.h"
 #include "framebuffer.h"
 #include "psf.h"
+#include "list.h"
 
 struct terminal {
     
@@ -16,16 +17,16 @@ struct terminal {
     char* (*gets)(struct terminal* term);
     void (*stdin_write)(struct terminal* term, char ch); // invoked by key press handler
     void (*scroll)(struct terminal* term);
+	
     struct terminal_backend* backend;
     
 };
 
+LINKED_LIST(struct terminal*, terminal_list_node);
+
 struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_header* font);
 
-void clear();
-void putc(char ch);
-void puts(char* str);
-void printf(char* fmt, ...);
-char getc();
-char* gets();
+struct terminal* get_terminal_by_index(uint8_t index);
+uint8_t get_index_of_terminal(struct terminal* terminal);
+
 void stdin_write(char ch); // invoked by key press handler

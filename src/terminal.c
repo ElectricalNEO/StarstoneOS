@@ -16,6 +16,12 @@ struct terminal_backend {
 };
 
 struct terminal* active_terminal = 0;
+struct terminal_list_node terminal_list = {
+	
+	.data = 0,
+	.next = 0
+	
+};
 char _itoa_buf[21];
 
 void terminal_clear(struct terminal* term) {
@@ -265,6 +271,31 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
         
     }
     
+	struct terminal_list_node* node = &terminal_list;
+	while(node->data && node->next) {
+		
+		node = node->next;
+		
+	}
+	
+	if(node->data) {
+		
+		node->next = malloc(sizeof(struct terminal_list_node));
+		if(!node->next) {
+			
+			free((void*)term->backend->terminal_buffer);
+			free(term->backend);
+			free(term);
+			return 0;
+			
+		}
+		node = node->next;
+		node->next = 0;
+		
+	}
+	
+	node->data = term;
+	
     if(!active_terminal) active_terminal = term;
     
     term->clear = terminal_clear;
@@ -288,63 +319,56 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
     
 }
 
-
-
-void clear() {
-    
-    if(!active_terminal) return;
-    
-    terminal_clear(active_terminal);
-    
+struct terminal* get_terminal_by_index(uint8_t index) {
+	
+	struct terminal_list_node* node = &terminal_list;
+	for(uint8_t i = 0; i < index; i++) {
+		
+		if(!node->next) return 0;
+		node = node->next;
+		
+	}
+	return node->data;
+	
 }
 
-void putc(char ch) {
-    
-    if(!active_terminal) return;
-    
-    terminal_putc(active_terminal, ch);
-    
-}
-
-void puts(char* str) {
-    
-    if(!active_terminal) return;
-    
-    terminal_puts(active_terminal, str);
-    
-}
-
-void printf(char* fmt, ...) {
-    
-    if(!active_terminal) return;
-    
-    va_list args;
-    va_start(args, fmt);
-    active_terminal->vprintf(active_terminal, fmt, args);
-    va_end(args);
-    
-}
-
-char getc() {
-    
-    if(!active_terminal) return 0;
-    
-    return active_terminal->getc(active_terminal);
-    
-}
-
-char* gets() {
-    
-    if(!active_terminal) return 0;
-    
-    return active_terminal->gets(active_terminal);
-    
+uint8_t get_index_of_terminal(struct terminal* terminal) {
+	
+	uint8_t index = 0;
+	struct terminal_list_node* node = &terminal_list;
+	while(node->next && node->data != terminal) {
+		
+		if(node->data) index++;
+		node = node->next;
+		
+	}
+	return index;
+	
 }
 
 void stdin_write(char ch) {
     
     if(!active_terminal) return;
     
+	if(ch == 0x11) {
+		
+		uint8_t index = get_index_of_terminal(active_terminal);
+		if(!index) return;
+		struct terminal* term = get_terminal_by_index(index-1);
+		if(term) term->activate(term);
+		
+		return;
+		
+	} else if(ch == 0x12) {
+		
+		uint8_t index = get_index_of_terminal(active_terminal);
+		struct terminal* term = get_terminal_by_index(index+1);
+		if(term) term->activate(term);
+		
+		return;
+		
+	}
+	
     active_terminal->stdin_write(active_terminal, ch);
     
 }

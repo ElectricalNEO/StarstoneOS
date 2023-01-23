@@ -15,29 +15,43 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
 	
     if(init_page_frame_allocator(memory_map, framebuffer, initrd)) {
         
-        tr_puts("ERROR: Failed to initialize page frame allocator!\n");
+        puts("ERROR: Failed to initialize page frame allocator!\n");
         while(1);
         
     }
     
     if(init_heap()) {
         
-        tr_puts("ERROR: Failed to initialize heap!\n");
+        puts("ERROR: Failed to initialize heap!\n");
         while(1);
         
     }
     
-    create_terminal(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
+    struct terminal* term = create_terminal(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
+	if(!term) {
+		
+		puts("ERROR: Failed to create a virtual terminal!\n");
+		while(1);
+		
+	}
     
-    puts("Starstone 1.0 Ahlspiess\n");
+	
+	for(uint8_t i = 0; i < 5; i++) {
+		
+		struct terminal* term = create_terminal(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
+		term->printf(term, "This is terminal number %d!\n", i +1);
+		
+	}
+	
+    term->puts(term, "Starstone 1.0 Ahlspiess\n");
     
     if(init_idt()) {
         
-        puts("ERROR: Failed to allocate memory for IDT!\n");
+        term->puts(term, "ERROR: Failed to allocate memory for IDT!\n");
         while(1);
         
     }
-    
+	
 	struct pci_device device;
 	
 	for(uint16_t bus = 0; bus < 256; bus++) {
@@ -51,7 +65,7 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
 			for(uint8_t function = 0;;) {
 				
 				if(device.vendor_id == 0xffff) break;
-				printf("DEVICE -- VENDOR: 0x%x -- CLASS: 0x%x -- SUBCLASS: 0x%x -- INTERFACE: 0x%x\n", device.vendor_id, device.class, device.subclass, device.interface);
+				term->printf(term, "DEVICE -- VENDOR: 0x%x -- CLASS: 0x%x -- SUBCLASS: 0x%x -- INTERFACE: 0x%x\n", device.vendor_id, device.class, device.subclass, device.interface);
 				
 				function++;
 				if(function >= functions) break;
@@ -66,15 +80,15 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
 	
     while(1) {
         
-        puts(">>> ");
-        char* text = gets();
+        term->puts(term, ">>> ");
+        char* text = term->gets(term);
         if(text) {
             
-            printf("INPUT: %s\n", text);
+            term->printf(term, "INPUT: %s\n", text);
             free(text);
             
         }
-        else puts("ERROR: Failed to read from stdin!\n");
+        else term->puts(term, "ERROR: Failed to read from stdin!\n");
         
     }
     

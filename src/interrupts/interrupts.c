@@ -3,7 +3,7 @@
 #include "../port.h"
 #include "pic.h"
 #include "../input/keyboard.h"
-#include "../terminal.h"
+#include "../text_renderer.h"
 
 __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
     
@@ -14,6 +14,7 @@ __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
 __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
     
     UNUSED(frame);
+	clear();
     puts("Page fault!\n");
     while(1);
     
