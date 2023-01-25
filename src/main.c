@@ -9,6 +9,27 @@
 #include "terminal.h"
 #include "pci.h"
 #include "scheduling/pit.h"
+#include "scheduling/multitasking.h"
+
+struct terminal* term;
+
+void task_a() {
+	
+	while(1) term->printf(term, "a");
+	
+}
+
+void task_b() {
+	
+	while(1) term->printf(term, "b");
+	
+}
+
+void task_c() {
+	
+	while(1) term->printf(term, "c");
+	
+}
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -28,7 +49,7 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         
     }
     
-    struct terminal* term = create_terminal(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
+    term = create_terminal(framebuffer, tar_open_file((void*)initrd->address, "zap-light24.psf"));
 	if(!term) {
 		
 		puts("ERROR: Failed to create a virtual terminal!\n");
@@ -50,26 +71,33 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
         while(1);
         
     }	
-	activate_interrupts();
+	pit_set_divisor(4096);
 	
     term->puts(term, "Starstone 1.0 Ahlspiess\n");
 	
-	pit_set_divisor(4096);
+	if(start_task(task_a)) {
+		
+		term->puts(term, "Failed to start task A!\n");
+		while(1);
+		
+	}
 	
-    while(1) {
-        
-        term->puts(term, "h");
-		sleep(1000);
-        // char* text = term->gets(term);
-        // if(text) {
-            
-        //     term->printf(term, "INPUT: %s\n", text);
-        //     free(text);
-		// 	term->printf(term, "Time since boot: %d\n", get_time_since_boot());
-            
-        // }
-        // else term->puts(term, "ERROR: Failed to read from stdin!\n");
-        
-    }
+	if(start_task(task_b)) {
+		
+		term->puts(term, "Failed to start task B!\n");
+		while(1);
+		
+	}
+	
+	if(start_task(task_c)) {
+		
+		term->puts(term, "Failed to start task C!\n");
+		while(1);
+		
+	}
+	
+	activate_interrupts();
+	
+	while(1);
     
 }
