@@ -8,6 +8,7 @@
 #include "memory/heap.h"
 #include "terminal.h"
 #include "pci.h"
+#include "scheduling/pit.h"
 
 int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     
@@ -42,53 +43,32 @@ int main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_m
 		term->printf(term, "This is terminal number %d!\n", i +1);
 		
 	}
-	
-    term->puts(term, "Starstone 1.0 Ahlspiess\n");
     
     if(init_idt()) {
         
         term->puts(term, "ERROR: Failed to allocate memory for IDT!\n");
         while(1);
         
-    }
+    }	
+	activate_interrupts();
 	
-	struct pci_device device;
+    term->puts(term, "Starstone 1.0 Ahlspiess\n");
 	
-	for(uint16_t bus = 0; bus < 256; bus++) {
-		
-		for(uint8_t device_id = 0; device_id < 32; device_id++) {
-			
-			device = pci_get_device(bus, device_id, 0);
-			if(device.vendor_id == 0xffff) continue;
-			
-			uint8_t functions = pci_device_is_multifunction(bus, device_id) ? 8 : 1;
-			for(uint8_t function = 0;;) {
-				
-				if(device.vendor_id == 0xffff) break;
-				term->printf(term, "DEVICE -- VENDOR: 0x%x -- CLASS: 0x%x -- SUBCLASS: 0x%x -- INTERFACE: 0x%x\n", device.vendor_id, device.class, device.subclass, device.interface);
-				
-				function++;
-				if(function >= functions) break;
-				
-				device = pci_get_device(bus, device_id, function);
-				
-			}
-			
-		}
-		
-	}
+	pit_set_divisor(4096);
 	
     while(1) {
         
-        term->puts(term, ">>> ");
-        char* text = term->gets(term);
-        if(text) {
+        term->puts(term, "h");
+		sleep(1000);
+        // char* text = term->gets(term);
+        // if(text) {
             
-            term->printf(term, "INPUT: %s\n", text);
-            free(text);
+        //     term->printf(term, "INPUT: %s\n", text);
+        //     free(text);
+		// 	term->printf(term, "Time since boot: %d\n", get_time_since_boot());
             
-        }
-        else term->puts(term, "ERROR: Failed to read from stdin!\n");
+        // }
+        // else term->puts(term, "ERROR: Failed to read from stdin!\n");
         
     }
     

@@ -22,6 +22,7 @@ uint8_t init_idt() {
     }
     
     set_interrupt_gate(0x0e, int_0eh);
+    set_interrupt_gate(0x20, int_20h);
     set_interrupt_gate(0x21, int_21h);
     
     struct idtr idtr;
@@ -31,10 +32,6 @@ uint8_t init_idt() {
     asm("lidt %0" : : "m" (idtr));
     
     remap_pic();
-    pic_master_set_mask(0b11111101);
-    pic_slave_set_mask(0b11111111);
-    
-    asm("sti");
     
     return 0;
     
@@ -48,4 +45,12 @@ void set_interrupt_gate(uint8_t i, void* handler) {
     idt[i].flags = GATE_FLAGS(1, 0, INTERRUPT_GATE);
     idt[i].segment = 8;
     
+}
+
+void activate_interrupts() {
+	
+	pic_master_set_mask(0b11111100);
+    pic_slave_set_mask(0b11111111);
+	asm("sti");
+	
 }

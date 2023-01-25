@@ -163,7 +163,7 @@ _start:
 	
 .loop:
 	lea eax, [pml4 + ecx * 4]
-	lea eax, [pdpt_kernel + ecx * 4]
+	lea eax, [pdpt + ecx * 4]
 	lea eax, [pd_kernel + ecx * 4]
 	lea eax, [pd_framebuffer + ecx * 4]
 	lea eax, [pd_initrd + ecx * 4]
@@ -176,15 +176,15 @@ _start:
 	;;; MAP KERNEL & ACTIVATE RECURSIVE MAPPING ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
-	mov eax, pdpt_kernel
+	mov eax, pdpt
 	or eax, 0b11
 	mov [pml4], eax
 	mov [pml4 + 511 * 8], eax
 	
 	mov eax, pd_kernel
 	or eax, 0b11
-	mov [pdpt_kernel], eax
-	mov [pdpt_kernel + 510 * 8], eax
+	mov [pdpt], eax
+	mov [pdpt + 510 * 8], eax
 	
 	mov eax, 0b10000011
 	mov [pd_kernel], eax
@@ -257,7 +257,7 @@ align 4096
 pml4: resb 4096
 
 align 4096
-pdpt_kernel: resb 4096
+pdpt: resb 4096
 
 align 4096
 pd_kernel: resb 4096
@@ -318,7 +318,7 @@ start64:
 	;;;;;;;;;;;;;;;;;;;;;;;
 	mov eax, pd_framebuffer
 	or eax, 0b11
-	mov [pdpt_kernel + 8], eax
+	mov [pdpt + 8], eax
 	
 	mov eax, [framebuffer.pitch]
 	mul dword [framebuffer.height]
@@ -357,7 +357,7 @@ start64:
 	;;;;;;;;;;;;;;;;;;
 	mov eax, pd_initrd
 	or eax, 0b11
-	mov [pdpt_kernel + 8 * 2], eax
+	mov [pdpt + 8 * 2], eax
 	
 	mov eax, [initrd_grub.size]
 	add eax, 0x200000 - 1

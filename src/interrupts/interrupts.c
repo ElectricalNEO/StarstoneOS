@@ -4,6 +4,7 @@
 #include "pic.h"
 #include "../input/keyboard.h"
 #include "../text_renderer.h"
+#include "../scheduling/pit.h"
 
 __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
     
@@ -19,6 +20,15 @@ __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
     while(1);
     
 }
+
+__attribute__((interrupt)) void int_20h(struct interrupt_frame* frame) {
+    
+    UNUSED(frame);
+    tick();
+    pic_end_master();
+    
+}
+
 
 __attribute__((interrupt)) void int_21h(struct interrupt_frame* frame) {
     

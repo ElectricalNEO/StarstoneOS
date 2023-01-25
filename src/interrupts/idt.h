@@ -32,3 +32,4 @@ struct idtr {
 
 uint8_t init_idt();
 void set_interrupt_gate(uint8_t i, void* handler);
+void activate_interrupts();
