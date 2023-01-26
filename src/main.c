@@ -48,11 +48,13 @@ void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct mem
 	
 }
 
+struct terminal* terminal;
+
 void task_terminal() {
 	
-	struct terminal* term = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
-	if(!term) return;
-	term->puts(term, "Terminal");
+	terminal = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
+	if(!terminal) return;
+	terminal->puts(terminal, "Terminal\n");
 	while(1);
 	
 }

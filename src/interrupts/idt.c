@@ -24,6 +24,7 @@ uint8_t init_idt() {
     set_interrupt_gate(0x0e, int_0eh);
     set_interrupt_gate(0x20, int_20h);
     set_interrupt_gate(0x21, int_21h);
+    set_interrupt_gate(0x80, int_80h);
     
     struct idtr idtr;
     idtr.offset = IDT_ADDRESS;

@@ -2,8 +2,11 @@
 
 extern switch_task
 extern tick
+extern syscall
+
 global task_registers
 global int_20h
+global int_80h
 
 section .text
 
@@ -58,6 +61,37 @@ int_20h:
 	
 	pop rax
 	
+	iretq
+
+int_80h:
+	push r9
+	push rcx
+	push rdx
+	push rsi
+	push rdi
+	push r8
+	push rax
+	push r10
+	push r11
+	
+	mov r9, r8
+	mov rcx, rdx
+	mov rdx, rsi
+	mov rsi, rdi
+	mov rdi, rax
+	mov r8, r10
+	
+	call syscall
+	
+	pop r11
+	pop r10
+	pop rax
+	pop r8
+	pop rdi
+	pop rsi
+	pop rdx
+	pop rcx
+	pop r9
 	iretq
 
 section .bss

@@ -24,6 +24,8 @@ struct terminal {
 
 LINKED_LIST(struct terminal*, terminal_list_node);
 
+extern struct terminal* terminal;
+
 struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_header* font);
 
 struct terminal* get_terminal_by_index(uint8_t index);

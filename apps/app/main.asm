@@ -1,5 +1,12 @@
 [bits 64]
 [org 0x1000]
 
-mov rax, 0x0123456789abcdef
-jmp 0x1000
+mov rax, 1
+mov rdi, 0
+mov rsi, helloworld
+mov rdx, helloworld_len
+int 80h
+jmp $
+
+helloworld: db "Hello World!", 10
+helloworld_len equ $ - helloworld
