@@ -295,8 +295,6 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
 	}
 	
 	node->data = term;
-	
-    if(!active_terminal) active_terminal = term;
     
     term->clear = terminal_clear;
     term->putc = terminal_putc;
@@ -314,6 +312,7 @@ struct terminal* create_terminal(struct framebuffer* framebuffer, struct psf_hea
     term->backend->ch_y = 0;
     
     term->clear(term);
+	term->activate(term);
     
     return term;
     

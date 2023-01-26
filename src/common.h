@@ -10,3 +10,6 @@ typedef unsigned int uint32_t;
 typedef signed int int32_t;
 typedef unsigned long long int uint64_t;
 typedef signed long long int int64_t;
+
+extern struct framebuffer* _framebuffer;
+extern struct initrd* _initrd;

@@ -3,20 +3,18 @@
 #include "string.h"
 #include "memory/memory.h"
 
-struct framebuffer* _framebuffer;
 struct psf_header* _font;
 uint32_t _chx, _chy;
 
-void init_text_renderer(struct framebuffer* framebuffer, struct psf_header* font) {
+void init_text_renderer(struct psf_header* font) {
     
-    _framebuffer = framebuffer;
     _font = font;
     
     if(!font || font->magic != PSF_FONT_MAGIC) {
         
-        for(uint32_t y = 0; y < framebuffer->height; y++)
-            for(uint32_t x = 0; x < framebuffer->width; x++)
-                *(uint32_t*)(framebuffer->address + y * framebuffer->pitch + x * framebuffer->bpp / 8) = 0xff0000;
+        for(uint32_t y = 0; y < _framebuffer->height; y++)
+            for(uint32_t x = 0; x < _framebuffer->width; x++)
+                *(uint32_t*)(_framebuffer->address + y * _framebuffer->pitch + x * _framebuffer->bpp / 8) = 0xff0000;
         while(1);
         
     }

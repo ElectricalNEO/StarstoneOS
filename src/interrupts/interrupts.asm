@@ -1,6 +1,7 @@
 [bits 64]
 
 extern switch_task
+extern tick
 global task_registers
 global int_20h
 
@@ -25,11 +26,16 @@ int_20h:
 	push r13
 	push r14
 	push r15
+	mov rax, cr3
+	push rax
+	
+	call tick
 	
 	mov [task_registers], rsp
-	
 	call switch_task
 	
+	pop rax
+	mov cr3, rax
 	pop r15
 	pop r14
 	pop r13
@@ -51,6 +57,7 @@ int_20h:
 	out 0x20, al
 	
 	pop rax
+	
 	iretq
 
 section .bss

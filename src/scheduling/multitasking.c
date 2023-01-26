@@ -11,12 +11,9 @@ struct task_list_node task_list = {
 };
 
 struct task_list_node* current_task = 0;
-
 extern struct registers* task_registers;
 
-extern struct terminal* term;
-
-uint8_t start_task(void(*entry_point)()) {
+uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table) {
 	
 	struct task* task = malloc(sizeof(struct task));
 	if(!task) return 1;
@@ -34,6 +31,7 @@ uint8_t start_task(void(*entry_point)()) {
 	task->regs.rflags = 0x202;
 	task->regs.cs = 0x8;
 	task->regs.ss = 0x10;
+	task->regs.cr3 = page_table;
 	
 	struct task_list_node* node = &task_list;
 	while(node->data && node->next) {
@@ -56,6 +54,14 @@ uint8_t start_task(void(*entry_point)()) {
 		node->next = 0;
 		
 	}
+	
+	uint8_t i = 0;
+	for(; i < 63 && name[i]; i++) {
+		
+		task->name[i] = name[i];
+		
+	}
+	task->name[i] = 0;
 	
 	node->data = task;
 	

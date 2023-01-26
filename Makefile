@@ -2,6 +2,8 @@
 # https://stackoverflow.com/a/18258352
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
+ROOT = .
+
 SOURCES = $(call rwildcard, src, *.asm *.c)
 OBJECTS_ASM = $(patsubst src/%.asm, bin/%_asm.o, $(SOURCES))
 OBJECTS = $(patsubst src/%.c, bin/%_c.o, $(OBJECTS_ASM))
@@ -27,8 +29,9 @@ bin/starkrnl: linker.ld $(OBJECTS)
 	@echo "\033[35;1mLINKING $@...\033[0m"
 	@ld -o $@ -T $^
 
-initrd.tar: initrd
+initrd.tar: initrd bin/apps/app.bin
 	@echo "\033[33;1mGENERATING $@...\033[0m"
+	@cp bin/apps/app.bin initrd/
 	@cd $< && tar -cf ../$@ *
 
 Starstone.iso: bin/starkrnl grub.cfg initrd.tar
@@ -49,3 +52,5 @@ clean:
 	@-rm -r bin 2> /dev/null || true
 	@-rm Starstone.iso 2> /dev/null || true
 	@-rm initrd.tar 2> /dev/null || true
+
+include apps/app/Makefile

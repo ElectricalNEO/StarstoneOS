@@ -15,4 +15,6 @@
 #define PDE_FLAG_PRESENT 1 << 0
 #define PDE_FLAG_RW 1 << 1
 
+extern uint64_t pml4;
+
 uint8_t map_page(uint64_t physical_address, uint64_t virtual_address);

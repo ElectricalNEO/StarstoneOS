@@ -15,3 +15,4 @@ struct tar_header {
 }__attribute__((packed));
 
 void* tar_open_file(void* tar, char* path);
+uint64_t tar_get_file_size(void* tar, char* path);

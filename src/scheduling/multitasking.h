@@ -4,6 +4,7 @@
 
 struct registers {
 	
+	uint64_t cr3;
 	uint64_t r15;
 	uint64_t r14;
 	uint64_t r13;
@@ -33,10 +34,13 @@ struct registers {
 struct task {
 	
 	struct registers regs;
+	char name[64];
 	
 };
 
 LINKED_LIST(struct task*, task_list_node);
 
-uint8_t start_task(void(*entry_point)());
+extern struct task_list_node task_list;
+
+uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table);
 void switch_task();
