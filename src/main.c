@@ -13,6 +13,7 @@
 #include "memory/paging.h"
 #include "program.h"
 #include "tss.h"
+#include "syscall.h"
 
 struct framebuffer* _framebuffer;
 struct initrd* _initrd;
@@ -46,6 +47,8 @@ void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct mem
         while(1);
         
     }
+	
+	init_syscall();
 	
 	pit_set_divisor(32768);
 	flush_tss();

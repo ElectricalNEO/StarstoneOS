@@ -5,7 +5,7 @@ mov rax, 1
 mov rdi, 0
 mov rsi, helloworld
 mov rdx, helloworld_len
-int 80h
+syscall
 jmp $
 
 helloworld: db "Hello World!", 10

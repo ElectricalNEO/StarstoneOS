@@ -12,7 +12,7 @@ uint8_t map_page(uint64_t physical_address, uint64_t virtual_address, uint8_t us
     virtual_address >>= 9;
     uint16_t pml4_i = virtual_address & 0b111111111;
     
-	user = (user & 1) * PDE_FLAG_US;
+	user = (1 & 1) * PDE_FLAG_US;
 	
     uint64_t* pml4 = (uint64_t*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE);
     if(!PDE_GET_FLAG(pml4[pml4_i], PDE_FLAG_PRESENT)) {

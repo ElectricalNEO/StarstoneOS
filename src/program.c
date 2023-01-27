@@ -32,6 +32,6 @@ uint8_t start_program(void* program, uint64_t size, uint64_t offset, char* name)
 	uint64_t pml4_addr = (uint64_t)&pml4;
 	asm("mov cr3, %0" : : "r" (pml4_addr));
 	
-	return start_task((void*)offset, name, page_map, (8 * 3) | 3, (8 * 4) | 3);
+	return start_task((void*)offset, name, page_map, (8 * 4) | 3, (8 * 3) | 3);
 	
 }
