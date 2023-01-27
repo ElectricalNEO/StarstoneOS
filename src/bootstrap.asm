@@ -8,6 +8,8 @@ extern main
 global _start
 global pml4
 global pdpt
+global tss
+global stack
 
 MAGIC equ 0xe85250d6
 ARCHITECTURE equ 0 ; i386
@@ -179,20 +181,20 @@ _start:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	mov eax, pdpt
-	or eax, 0b11
+	or eax, 0b111
 	mov [pml4], eax
 	mov [pml4 + 511 * 8], eax
 	
 	mov eax, pd_kernel
-	or eax, 0b11
+	or eax, 0b111
 	mov [pdpt], eax
 	mov [pdpt + 510 * 8], eax
 	
-	mov eax, 0b10000011
+	mov eax, 0b10000111
 	mov [pd_kernel], eax
 	
 	mov eax, pml4
-	or eax, 0b11
+	or eax, 0b111
 	mov [pml4 + 510 * 8], eax
 	
 	;;;;;;;;;;;;;;;;;;
@@ -290,6 +292,8 @@ initrd:
 
 memory_map: resd 1
 
+tss: resb 104
+
 [bits 64]
 section .bootstrap.text
 
@@ -315,11 +319,23 @@ start64:
 	mov gs, rax
 	mov ss, rax
 	
+	;;;;;;;;;;;;;;;;;
+	;;; SETUP TSS ;;;
+	;;;;;;;;;;;;;;;;;
+	mov rax, tss
+	add rax, KERNEL_VIRT
+	mov [gdt.tss_base_0], ax
+	shr rax, 16
+	mov [gdt.tss_base_1], al
+	mov [gdt.tss_base_2], ah
+	shr rax, 16
+	mov [gdt.tss_base_3], eax
+	
 	;;;;;;;;;;;;;;;;;;;;;;;
 	;;; MAP FRAMEBUFFER ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;
 	mov eax, pd_framebuffer
-	or eax, 0b11
+	or eax, 0b111
 	mov [pdpt + 8], eax
 	
 	mov eax, [framebuffer.pitch]
@@ -358,7 +374,7 @@ start64:
 	;;; MAP INITRD ;;;
 	;;;;;;;;;;;;;;;;;;
 	mov eax, pd_initrd
-	or eax, 0b11
+	or eax, 0b111
 	mov [pdpt + 8 * 2], eax
 	
 	mov eax, [initrd_grub.size]
@@ -420,6 +436,7 @@ higher_half:
 	jmp $
 
 section .data
+
 gdtr:
 	dw gdt.end - gdt - 1
 	dq gdt
@@ -428,10 +445,25 @@ gdt:
 .null:
 	dd 0
 	dd 0
-.code:
+.code_kernel:
 	dd 0xffff
 	dd (10 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
-.data:
+.data_kernel:
 	dd 0xffff
 	dd (2 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
+.code_user:
+	dd 0xffff
+	dd (10 << 8) | (1 << 12) | (3 << 13) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
+.data_user:
+	dd 0xffff
+	dd (2 << 8) | (1 << 12) | (3 << 13) | (1 << 15) | (0xf << 16) | (1 << 21) | (1 << 23)
+.tss:
+	dw 104
+.tss_base_0: dw 0
+.tss_base_1: db 0
+	db 0x89
+	db 0x40
+.tss_base_2: db 0
+.tss_base_3: dd 0
+	dd 0
 .end:

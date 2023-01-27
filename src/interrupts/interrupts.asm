@@ -1,14 +1,18 @@
 [bits 64]
 
+KERNEL_VIRT equ 0xffffffff80000000
+
 extern switch_task
 extern tick
 extern syscall
 extern lock_task
 extern unlock_task
+extern tss
 
 global task_registers
 global int_20h
 global int_80h
+global int_81h
 
 section .text
 
@@ -35,6 +39,9 @@ int_20h:
 	push rax
 	
 	call tick
+	
+	lea rax, [tss + 4 + KERNEL_VIRT]
+	mov [rax], rsp
 	
 	mov [task_registers], rsp
 	call switch_task

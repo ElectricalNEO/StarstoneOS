@@ -14,7 +14,7 @@ struct task_list_node* current_task = 0;
 extern struct registers* task_registers;
 uint8_t lock = 0, switch_waiting = 0;
 
-uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table) {
+uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table, uint64_t code_segment, uint64_t data_segment) {
 	
 	struct task* task = malloc(sizeof(struct task));
 	if(!task) return 1;
@@ -33,6 +33,8 @@ uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table) {
 	task->regs.cs = 0x8;
 	task->regs.ss = 0x10;
 	task->regs.cr3 = page_table;
+	task->regs.ss = data_segment;
+	task->regs.cs = code_segment;
 	
 	struct task_list_node* node = &task_list;
 	while(node->data && node->next) {

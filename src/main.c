@@ -12,9 +12,12 @@
 #include "scheduling/task_manager.h"
 #include "memory/paging.h"
 #include "program.h"
+#include "tss.h"
 
 struct framebuffer* _framebuffer;
 struct initrd* _initrd;
+
+extern uint64_t stack;
 
 void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
 	
@@ -45,6 +48,8 @@ void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct mem
     }
 	
 	pit_set_divisor(32768);
+	flush_tss();
+	*(uint16_t*)((uint64_t)&tss + 0x66 + KERNEL_VIRT) = 104;
 	
 }
 
@@ -65,14 +70,14 @@ void main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_
     
     init_all(framebuffer, initrd, memory_map);
 	
-	if(start_task(task_manager, "Task Manager", (uint64_t)&pml4)) {
+	if(start_task(task_manager, "Task Manager", (uint64_t)&pml4, 0x8, 0x10)) {
 		
 		puts("ERROR: Failed to start task manager!\n");
 		while(1);
 		
 	}
 	
-	if(start_task(task_terminal, "Terminal", (uint64_t)&pml4)) {
+	if(start_task(task_terminal, "Terminal", (uint64_t)&pml4, 0x8, 0x10)) {
 		
 		puts("ERROR: Failed to start terminal!\n");
 		while(1);

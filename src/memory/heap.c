@@ -11,7 +11,7 @@ uint8_t init_heap() {
     
     uint64_t page = request_page_frame();
     if(!page) return 1;
-    if(map_page(page, (uint64_t)heap_start)) {
+    if(map_page(page, (uint64_t)heap_start, 0)) {
         free_page_frame(page);
         return 1;
     }
@@ -30,7 +30,7 @@ uint8_t expand_heap(uint64_t pages) {
         
         uint64_t page = request_page_frame();
         if(!page) return 1;
-        if(map_page(page, heap_end + 1)) {
+        if(map_page(page, heap_end + 1, 0)) {
             
             free_page_frame(page);
             return 1;

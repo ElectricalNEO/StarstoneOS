@@ -31,5 +31,5 @@ struct idtr {
 }__attribute__((packed));
 
 uint8_t init_idt();
-void set_interrupt_gate(uint8_t i, void* handler);
+void set_interrupt_gate(uint8_t i, uint8_t dpl, void* handler);
 void activate_interrupts();

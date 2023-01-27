@@ -44,7 +44,7 @@ __attribute__((interrupt)) void int_0dh(struct interrupt_frame* frame) {
 __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
     
     UNUSED(frame);
-	//clear();
+	clear();
     puts("Page fault!\n");
     while(1);
     

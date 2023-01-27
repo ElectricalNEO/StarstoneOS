@@ -12,10 +12,10 @@ uint8_t start_program(void* program, uint64_t size, uint64_t offset, char* name)
 	uint64_t page_map = request_page_frame();
 	if(!page_map) return 1;
 	
-	if(map_page(page_map, 0x1000)) return 1;
+	if(map_page(page_map, 0x1000, 0)) return 1;
 	memset((void*)0x1000, 0x1000, 0);
-	*(uint64_t*)(0x1000 + 511 * 8) = (uint64_t)&pdpt | 0b11;
-	*(uint64_t*)(0x1000 + PML4_RECURSIVE * 8) = page_map | 0b11;
+	*(uint64_t*)(0x1000 + 511 * 8) = (uint64_t)&pdpt | PDE_FLAG_PRESENT | PDE_FLAG_RW;
+	*(uint64_t*)(0x1000 + PML4_RECURSIVE * 8) = page_map | PDE_FLAG_PRESENT | PDE_FLAG_RW;
 	
 	asm("mov cr3, %0" : : "r" (page_map));
 	
@@ -23,14 +23,15 @@ uint8_t start_program(void* program, uint64_t size, uint64_t offset, char* name)
 		
 		uint64_t page = request_page_frame();
 		if(!page) return 1;
-		if(map_page(page, offset + i)) return 1;
+		if(map_page(page, offset + i, 1)) return 1;
 		
 	}
 	
-	// uint64_t pml4_addr = &pml4;
-	// asm("mov cr3, %0" : : "r" (pml4_addr));
-	
 	memcpy(program, (void*)offset, size);
-	return start_task((void*)offset, name, page_map);
+	
+	uint64_t pml4_addr = (uint64_t)&pml4;
+	asm("mov cr3, %0" : : "r" (pml4_addr));
+	
+	return start_task((void*)offset, name, page_map, (8 * 3) | 3, (8 * 4) | 3);
 	
 }

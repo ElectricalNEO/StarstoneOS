@@ -1,7 +1,7 @@
 #include "paging.h"
 #include "page_frame_allocator.h"
 
-uint8_t map_page(uint64_t physical_address, uint64_t virtual_address) {
+uint8_t map_page(uint64_t physical_address, uint64_t virtual_address, uint8_t user) {
     
     virtual_address >>= 12;
     uint16_t pt_i = virtual_address & 0b111111111;
@@ -12,38 +12,42 @@ uint8_t map_page(uint64_t physical_address, uint64_t virtual_address) {
     virtual_address >>= 9;
     uint16_t pml4_i = virtual_address & 0b111111111;
     
+	user = (user & 1) * PDE_FLAG_US;
+	
     uint64_t* pml4 = (uint64_t*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE);
     if(!PDE_GET_FLAG(pml4[pml4_i], PDE_FLAG_PRESENT)) {
         
         uint64_t page = request_page_frame();
         if(!page) return 1;
-        pml4[pml4_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | page;
+        pml4[pml4_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | PDE_FLAG_US | page;
         memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE, pml4_i), 4096, 0);
         
     }
-    
+    pml4[pml4_i] |= PDE_FLAG_RW | PDE_FLAG_US;
     uint64_t* pdpt = (uint64_t*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, PML4_RECURSIVE, pml4_i);
     if(!PDE_GET_FLAG(pdpt[pdpt_i], PDE_FLAG_PRESENT)) {
         
         uint64_t page = request_page_frame();
         if(!page) return 1;
-        pdpt[pdpt_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | page;
+        pdpt[pdpt_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | PDE_FLAG_US | page;
         memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, pml4_i, pdpt_i), 4096, 0);
         
     }
+    pdpt[pdpt_i] |= PDE_FLAG_RW | PDE_FLAG_US;
     
     uint64_t* pd = (uint64_t*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, PML4_RECURSIVE, pml4_i, pdpt_i);
     if(!PDE_GET_FLAG(pd[pd_i], PDE_FLAG_PRESENT)) {
         
         uint64_t page = request_page_frame();
         if(!page) return 1;
-        pd[pd_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | page;
+        pd[pd_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | PDE_FLAG_US | page;
         memset((void*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, pml4_i, pdpt_i, pd_i), 4096, 0);
         
     }
+    pd[pd_i] |= PDE_FLAG_RW | PDE_FLAG_US;
     
     uint64_t* pt = (uint64_t*)CONSTRUCT_VIRTUAL(PML4_RECURSIVE, pml4_i, pdpt_i, pd_i);
-    pt[pt_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | physical_address;
+    pt[pt_i] = PDE_FLAG_PRESENT | PDE_FLAG_RW | user | physical_address;
     
 	asm("invlpg [(%0)]" : : "m" (virtual_address));
 	
