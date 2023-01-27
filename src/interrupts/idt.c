@@ -21,6 +21,9 @@ uint8_t init_idt() {
         
     }
     
+    set_interrupt_gate(0x06, int_06h);
+    set_interrupt_gate(0x08, int_08h);
+    set_interrupt_gate(0x0d, int_0dh);
     set_interrupt_gate(0x0e, int_0eh);
     set_interrupt_gate(0x20, int_20h);
     set_interrupt_gate(0x21, int_21h);

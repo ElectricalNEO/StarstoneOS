@@ -18,3 +18,4 @@
 extern uint64_t pml4;
 
 uint8_t map_page(uint64_t physical_address, uint64_t virtual_address);
+void unmap_page(uint64_t virtual_address);

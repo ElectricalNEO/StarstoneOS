@@ -36,8 +36,8 @@ void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct mem
         while(1);
         
     }
-    
-    if(init_idt()) {
+	
+	if(init_idt()) {
         
         puts("ERROR: Failed to allocate memory for IDT!\n");
         while(1);
@@ -52,14 +52,14 @@ struct terminal* terminal;
 
 void task_terminal() {
 	
+	lock_task();
 	terminal = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
 	if(!terminal) return;
 	terminal->puts(terminal, "Terminal\n");
+	unlock_task();
 	while(1);
 	
 }
-
-void a() {while(1);}
 
 void main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_map* memory_map) {
     

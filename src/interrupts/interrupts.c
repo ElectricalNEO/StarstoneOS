@@ -14,10 +14,37 @@ __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
     
 }
 
-__attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
+__attribute__((interrupt)) void int_06h(struct interrupt_frame* frame) {
     
     UNUSED(frame);
 	clear();
+    puts("Invalid opcode!\n");
+    while(1);
+    
+}
+
+__attribute__((interrupt)) void int_08h(struct interrupt_frame* frame) {
+    
+    UNUSED(frame);
+	clear();
+    puts("Double fault!\n");
+    while(1);
+    
+}
+
+__attribute__((interrupt)) void int_0dh(struct interrupt_frame* frame) {
+    
+    UNUSED(frame);
+	clear();
+    puts("General Protection fault!\n");
+    while(1);
+    
+}
+
+__attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
+    
+    UNUSED(frame);
+	//clear();
     puts("Page fault!\n");
     while(1);
     

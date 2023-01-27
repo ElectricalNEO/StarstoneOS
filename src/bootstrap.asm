@@ -7,6 +7,7 @@ INITRD_VIRT equ 0xffffff8080000000
 extern main
 global _start
 global pml4
+global pdpt
 
 MAGIC equ 0xe85250d6
 ARCHITECTURE equ 0 ; i386

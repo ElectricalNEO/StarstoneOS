@@ -12,6 +12,7 @@ struct task_list_node task_list = {
 
 struct task_list_node* current_task = 0;
 extern struct registers* task_registers;
+uint8_t lock = 0, switch_waiting = 0;
 
 uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table) {
 	
@@ -71,6 +72,13 @@ uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table) {
 
 void switch_task() {
 	
+	if(lock) {
+		
+		switch_waiting = 1;
+		return;
+		
+	}
+	
 	if(current_task) {
 		
 		memcpy(task_registers, &current_task->data->regs, sizeof(struct registers));
@@ -80,5 +88,18 @@ void switch_task() {
 	if(!current_task) current_task = &task_list;
 	
 	memcpy(&current_task->data->regs, task_registers, sizeof(struct registers));
+	
+}
+
+void lock_task() {
+	
+	lock = 1;
+	
+}
+
+void unlock_task() {
+	
+	lock = 0;
+	if(switch_waiting) asm("int 0x81");
 	
 }

@@ -44,3 +44,6 @@ extern struct task_list_node task_list;
 
 uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table);
 void switch_task();
+
+void lock_task();
+void unlock_task();
