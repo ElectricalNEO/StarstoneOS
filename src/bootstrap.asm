@@ -181,20 +181,20 @@ _start:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	mov eax, pdpt
-	or eax, 0b111
+	or eax, 0b11
 	mov [pml4], eax
 	mov [pml4 + 511 * 8], eax
 	
 	mov eax, pd_kernel
-	or eax, 0b111
+	or eax, 0b11
 	mov [pdpt], eax
 	mov [pdpt + 510 * 8], eax
 	
-	mov eax, 0b10000111
+	mov eax, 0b10000011
 	mov [pd_kernel], eax
 	
 	mov eax, pml4
-	or eax, 0b111
+	or eax, 0b11
 	mov [pml4 + 510 * 8], eax
 	
 	;;;;;;;;;;;;;;;;;;
@@ -335,7 +335,7 @@ start64:
 	;;; MAP FRAMEBUFFER ;;;
 	;;;;;;;;;;;;;;;;;;;;;;;
 	mov eax, pd_framebuffer
-	or eax, 0b111
+	or eax, 0b11
 	mov [pdpt + 8], eax
 	
 	mov eax, [framebuffer.pitch]
@@ -374,7 +374,7 @@ start64:
 	;;; MAP INITRD ;;;
 	;;;;;;;;;;;;;;;;;;
 	mov eax, pd_initrd
-	or eax, 0b111
+	or eax, 0b11
 	mov [pdpt + 8 * 2], eax
 	
 	mov eax, [initrd_grub.size]

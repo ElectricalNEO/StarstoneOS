@@ -11,7 +11,7 @@ uint8_t init_idt() {
     
     uint64_t idt_phys = request_page_frame();
     if(!idt_phys) return 1;
-    if(map_page(idt_phys, IDT_ADDRESS, 0)) return 1;
+    if(map_page(idt_phys, IDT_ADDRESS, 1, 0)) return 1;
     
     memset((void*)IDT_ADDRESS, 4096, 0);
     

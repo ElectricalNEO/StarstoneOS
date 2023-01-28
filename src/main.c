@@ -11,7 +11,7 @@
 #include "scheduling/multitasking.h"
 #include "scheduling/task_manager.h"
 #include "memory/paging.h"
-#include "program.h"
+#include "elf.h"
 #include "tss.h"
 #include "syscall.h"
 
@@ -87,9 +87,9 @@ void main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_
 		
 	}
 	
-	if(start_program(tar_open_file((void*)initrd->address, "app.bin"), tar_get_file_size((void*)initrd->address, "app.bin"), 0x1000, "app.bin")) {
+	if(start_elf(tar_open_file((void*)initrd->address, "app"), "app")) {
 		
-		puts("ERROR: Failed to start app.bin!\n");
+		puts("ERROR: Failed to start app!\n");
 		while(1);
 		
 	}

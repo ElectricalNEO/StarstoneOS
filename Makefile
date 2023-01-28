@@ -29,9 +29,9 @@ bin/starkrnl: linker.ld $(OBJECTS)
 	@echo "\033[35;1mLINKING $@...\033[0m"
 	@ld -o $@ -T $^
 
-initrd.tar: initrd bin/apps/app.bin
+initrd.tar: initrd bin/apps/app
 	@echo "\033[33;1mGENERATING $@...\033[0m"
-	@cp bin/apps/app.bin initrd/
+	@cp bin/apps/app initrd/
 	@cd $< && tar -cf ../$@ *
 
 Starstone.iso: bin/starkrnl grub.cfg initrd.tar

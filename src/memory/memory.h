@@ -31,3 +31,4 @@ uint64_t get_memory_size(struct memory_map* memory_map);
 
 void memcpy(void* src, void* dst, uint64_t n);
 void memset(void* s, uint64_t n, uint8_t c);
+int8_t memcmp(void* a, void* b, uint64_t n);

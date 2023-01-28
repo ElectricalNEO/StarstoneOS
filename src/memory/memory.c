@@ -50,3 +50,16 @@ void memset(void* s, uint64_t n, uint8_t c) {
     }
     
 }
+
+int8_t memcmp(void* a, void* b, uint64_t n) {
+	
+	for(uint64_t i = 0; i < n; i++) {
+        
+		if(*(uint8_t*)((uint64_t)a + i) < *(uint8_t*)((uint64_t)b + i)) return -1;
+		if(*(uint8_t*)((uint64_t)a + i) > *(uint8_t*)((uint64_t)b + i)) return 1;
+        
+    }
+	
+	return 0;
+	
+}
