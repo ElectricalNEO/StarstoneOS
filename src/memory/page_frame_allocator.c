@@ -6,6 +6,9 @@ void* page_bitmap = 0;
 uint64_t total_pages;
 extern void* KERNEL_END;
 
+uint64_t free_mem = 0;
+uint64_t used_mem = 0;
+
 int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer* framebuffer, struct initrd* initrd) {
     
     total_pages = (get_memory_size(memory_map) + 4095) / 4096;
@@ -13,7 +16,8 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
     uint64_t bitmap_pages = (bitmap_size + 4095) / 4096;
     uint64_t bitmap_page_frames[bitmap_pages];
     uint64_t cur_page = 0;
-    
+    free_mem = get_memory_size(0);
+	
     for(struct memory_map_entry* entry = memory_map->entries; (uint64_t)entry + memory_map->entry_size < (uint64_t)memory_map + memory_map->size; entry = (struct memory_map_entry*)((uint64_t)entry + memory_map->entry_size)) {
         
         if(entry->type != MULTIBOOT_MEMORY_AVAILABLE) continue;
@@ -28,9 +32,9 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
         }
         
     }
-    
+	
     end:
-    
+	
     if(cur_page < bitmap_pages) return 1;
     
     for(uint64_t i = 0; i < bitmap_pages; i++) {
@@ -54,18 +58,24 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
     
     for(uint64_t i = 0; i < ((uint64_t)&KERNEL_END - KERNEL_VIRT - 0x100000 + 4095) / 4096; i++) {
         
+		used_mem += 4096;
+		free_mem -= 4096;
         BITMAP_SET(page_bitmap, 0x100000 + i);
         
     }
     
     for(uint64_t i = (initrd->address - INITRD_VIRT) / 4096; i < (initrd->address - INITRD_VIRT) / 4096 + (initrd->size + 4095) / 4096; i++) {
         
+		used_mem += 4096;
+		free_mem -= 4096;
         BITMAP_SET(page_bitmap, i);
         
     }
     
     for(uint64_t i = (framebuffer->address - FRAMEBUFFER_VIRT) / 4096; i < (framebuffer->address - FRAMEBUFFER_VIRT) / 4096 + ((framebuffer->pitch * framebuffer->height * framebuffer->bpp / 8) + 4095) / 4096; i++) {
         
+		used_mem += 4096;
+		free_mem -= 4096;
         BITMAP_SET(page_bitmap, i);
         
     }
@@ -76,10 +86,14 @@ int init_page_frame_allocator(struct memory_map* memory_map, struct framebuffer*
 
 uint64_t request_page_frame() {
     
+	if(!free_mem) return 0;
+	
     for(uint64_t i = 0; i < total_pages; i++) {
         
         if(!BITMAP_GET(page_bitmap, i)) {
             
+			used_mem += 4096;
+			free_mem -= 4096;
             BITMAP_SET(page_bitmap, i);
             return i * 4096;
             
@@ -93,6 +107,20 @@ uint64_t request_page_frame() {
 
 void free_page_frame(uint64_t addr) {
     
+	used_mem -= 4096;
+	free_mem += 4096;
     BITMAP_CLEAR(page_bitmap, addr / 4096);
     
+}
+
+uint64_t get_free_memory() {
+	
+	return free_mem;
+	
+}
+
+uint64_t get_used_memory() {
+	
+	return used_mem;
+	
 }

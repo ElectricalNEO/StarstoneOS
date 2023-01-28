@@ -17,6 +17,9 @@
 #define PDE_FLAG_US (1 << 2)
 
 extern uint64_t pml4;
+extern uint64_t pdpt;
+
+uint64_t create_page_table();
 
 uint8_t map_page(uint64_t physical_address, uint64_t virtual_address, uint8_t rw, uint8_t user);
 void unmap_page(uint64_t virtual_address);

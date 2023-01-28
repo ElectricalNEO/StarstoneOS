@@ -1,12 +1,13 @@
 #include "interrupts.h"
 #include "../terminal.h"
-#include "../port.h"
+#include "../hardware/port.h"
 #include "pic.h"
 #include "../input/keyboard.h"
 #include "../text_renderer.h"
 #include "../scheduling/pit.h"
 #include "../scheduling/multitasking.h"
 #include "../memory/memory.h"
+#include "../string.h"
 
 __attribute__((interrupt)) void int_ignore(struct interrupt_frame* frame) {
     
@@ -45,7 +46,11 @@ __attribute__((interrupt)) void int_0eh(struct interrupt_frame* frame) {
     
     UNUSED(frame);
 	clear();
-    puts("Page fault!\n");
+    puts("Page fault!\nAddress: 0x");
+	volatile uint64_t addr = 0;
+	asm("mov rax, cr2\nmov %0, rax" : : "m"(addr) : "rax");
+	char str[20];
+	puts(itoa(addr, str, 16));
     while(1);
     
 }

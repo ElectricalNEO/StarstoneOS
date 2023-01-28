@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "../common.h"
 
 #define PCI_ADDRESS(bus, device, function, offset) ((1 << 31) | (bus << 16) | (device << 11) | (function << 8) | (offset & 0xfc))
 

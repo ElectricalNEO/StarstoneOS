@@ -1,5 +1,5 @@
 #include "pic.h"
-#include "../port.h"
+#include "../hardware/port.h"
 
 void remap_pic() {
     

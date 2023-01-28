@@ -6,8 +6,6 @@
 #include "string.h"
 #include "memory/memory.h"
 
-extern uint64_t pdpt;
-
 uint8_t start_elf(void* elf, char* name) {
 	
 	if(!elf) return 1;
@@ -20,12 +18,8 @@ uint8_t start_elf(void* elf, char* name) {
 	struct elf64_phdr* phdr = (struct elf64_phdr*)((uint64_t)elf + ehdr->e_phoff);
 	uint64_t phdr_end = (uint64_t)elf + ehdr->e_phoff + ehdr->e_phentsize * ehdr->e_phnum;
 	
-	uint64_t page_map = request_page_frame();
-	if(!page_map) return 1;
-	
-	map_page(page_map, 0, 1, 0);
-	*(uint64_t*)(511 * 8) = (uint64_t)&pdpt | PDE_FLAG_PRESENT | PDE_FLAG_RW;
-	*(uint64_t*)(510 * 8) = page_map | PDE_FLAG_PRESENT | PDE_FLAG_RW;
+	uint64_t page_map = create_page_table();
+	uint64_t pml4_addr = (uint64_t)&pml4;
 	
 	asm("mov cr3, %0" : : "r" (page_map));
 	
@@ -37,12 +31,9 @@ uint8_t start_elf(void* elf, char* name) {
 			for(uint64_t i = 0; i < pages; i++) {
 				
 				uint64_t page = request_page_frame();
-				if(!page || map_page(page, phdr->p_vaddr + i * 4096, 1, 1)) {
-					
-					uint64_t pml4_addr = (uint64_t)&pml4;
+				if(!page || map_page(page, phdr->p_vaddr, 1, 1)) {
 					asm("mov cr3, %0" : : "r" (pml4_addr));
 					return 1;
-					
 				}
 				
 			}
@@ -52,9 +43,7 @@ uint8_t start_elf(void* elf, char* name) {
 		
 	}
 	
-	uint64_t pml4_addr = (uint64_t)&pml4;
 	asm("mov cr3, %0" : : "r" (pml4_addr));
-	
 	return start_task((void*)ehdr->e_entry, name, page_map, (8 * 4) | 3, (8 * 3) | 3);
 	
 }

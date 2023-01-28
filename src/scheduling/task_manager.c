@@ -4,17 +4,20 @@
 #include "../initrd.h"
 #include "pit.h"
 #include "multitasking.h"
+#include "../memory/page_frame_allocator.h"
+#include "../memory/memory.h"
 
 void task_manager() {
 	
 	lock_task();
 	struct terminal* term = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
 	if(!term) return;
+	uint64_t mem = get_memory_size(0) / 1048576;
 	unlock_task();
 	while(1) {
 		lock_task();
 		term->clear(term);
-		term->puts(term, "Task Manager\n\nTasks running:\n\n");
+		term->printf(term, "Task Manager\n\nTotal memory: %d MB\nFree memory: %d MB\nUsed memory: %d MB\n\nTasks running:\n\n", mem, get_free_memory() / 1048576, get_used_memory() / 1048576);
 		struct task_list_node* node = &task_list;
 		while(node) {
 			

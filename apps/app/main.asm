@@ -33,7 +33,7 @@ _start:
 	
 	jmp $
 
-section .data
+section .rodata
 
 helloworld: db "Hello World!", 10
 helloworld_len equ $ - helloworld

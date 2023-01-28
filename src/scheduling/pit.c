@@ -1,5 +1,5 @@
 #include "pit.h"
-#include "../port.h"
+#include "../hardware/port.h"
 
 uint16_t pit_divisor;
 uint64_t time_since_boot = 0;
