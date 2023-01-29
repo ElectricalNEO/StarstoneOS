@@ -6,11 +6,12 @@
 struct task_list_node task_list = {
 	
 	.data = 0,
-	.next = 0
+	.next = &task_list,
+	.prev = &task_list
 	
 };
 
-struct task_list_node* current_task = 0;
+struct task_list_node* current_task = &task_list;
 extern struct registers* task_registers;
 uint8_t lock = 0, switch_waiting = 0;
 
@@ -37,24 +38,21 @@ uint8_t start_task(void(*entry_point)(), char* name, uint64_t page_table, uint64
 	task->regs.cs = code_segment;
 	
 	struct task_list_node* node = &task_list;
-	while(node->data && node->next) {
-		
-		node = node->next;
-		
-	}
-	
 	if(node->data) {
 		
-		node->next = malloc(sizeof(struct task_list_node));
-		if(!node->next) {
+		struct task_list_node* next = node->next;
+		struct task_list_node* new = malloc(sizeof(struct task_list_node));
+		if(!new) {
 			
-			free((void*)task->regs.rsp);
+			free((void*)(task->regs.rsp - 4096));
 			free(task);
 			return 1;
 			
 		}
+		node->next = new;
+		node->next->next = next;
+		node->next->prev = node;
 		node = node->next;
-		node->next = 0;
 		
 	}
 	
@@ -81,13 +79,8 @@ void switch_task() {
 		
 	}
 	
-	if(current_task) {
-		
-		memcpy(task_registers, &current_task->data->regs, sizeof(struct registers));
-		current_task = current_task->next;
-		
-	}
-	if(!current_task) current_task = &task_list;
+	memcpy(task_registers, &current_task->data->regs, sizeof(struct registers));
+	current_task = current_task->next;
 	
 	memcpy(&current_task->data->regs, task_registers, sizeof(struct registers));
 	
@@ -103,5 +96,21 @@ void unlock_task() {
 	
 	lock = 0;
 	if(switch_waiting) asm("int 0x81");
+	
+}
+
+void terminate_current_task() {
+	
+	lock = 1;
+	
+	current_task->next->prev = current_task->prev;
+	current_task->prev->next = current_task->next;
+	
+	free(current_task->data);
+	free(current_task);
+	
+	lock = 0;
+	switch_waiting = 0;
+	asm("int 0x81");
 	
 }

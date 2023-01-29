@@ -38,7 +38,7 @@ struct task {
 	
 };
 
-LINKED_LIST(struct task*, task_list_node);
+DOUBLY_LINKED_LIST(struct task*, task_list_node);
 
 extern struct task_list_node task_list;
 
@@ -47,3 +47,5 @@ void switch_task();
 
 void lock_task();
 void unlock_task();
+
+void terminate_current_task();

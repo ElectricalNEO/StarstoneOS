@@ -14,6 +14,7 @@
 #include "elf.h"
 #include "tss.h"
 #include "syscall.h"
+#include "string.h"
 
 struct framebuffer* _framebuffer;
 struct initrd* _initrd;
@@ -56,16 +57,38 @@ void init_all(struct framebuffer* framebuffer, struct initrd* initrd, struct mem
 	
 }
 
-struct terminal* terminal;
+char stdout_buf[255];
+int16_t rear = -1, front = -1;
+
+void stdout_write(char* buf, uint64_t size) {
+	
+	if(rear + size >= 255) return;
+	if(front == -1) front = 0;
+	for(uint64_t i = 0; i < size; i++) {
+		rear++;
+		stdout_buf[rear] = buf[i];
+	}
+	
+}
 
 void task_terminal() {
 	
 	lock_task();
-	terminal = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
-	if(!terminal) return;
+	struct terminal* terminal = create_terminal(_framebuffer, tar_open_file((void*)_initrd->address, "zap-light24.psf"));
+	if(!terminal) terminate_current_task();
 	terminal->puts(terminal, "Terminal\n");
 	unlock_task();
-	while(1);
+	while(1) {
+		
+		lock_task();
+		for(; front > -1 && front <= rear; front++) {
+			
+			terminal->putc(terminal, stdout_buf[front]);
+			
+		}
+		unlock_task();
+		
+	}
 	
 }
 
@@ -73,16 +96,23 @@ void main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_
     
     init_all(framebuffer, initrd, memory_map);
 	
-	if(start_task(task_manager, "Task Manager", (uint64_t)&pml4, 0x8, 0x10)) {
+	if(start_task(0, "starkrnl", (uint64_t)&pml4, 0x8, 0x10)) {
 		
-		puts("ERROR: Failed to start task manager!\n");
+		puts("ERROR: Failed to start kernel task!\n");
 		while(1);
 		
 	}
 	
 	if(start_task(task_terminal, "Terminal", (uint64_t)&pml4, 0x8, 0x10)) {
 		
-		puts("ERROR: Failed to start terminal!\n");
+		puts("ERROR: Failed to start task terminal!\n");
+		while(1);
+		
+	}
+	
+	if(start_task(task_manager, "Task Manager", (uint64_t)&pml4, 0x8, 0x10)) {
+		
+		puts("ERROR: Failed to start task manager!\n");
 		while(1);
 		
 	}
@@ -95,5 +125,11 @@ void main(struct framebuffer* framebuffer, struct initrd* initrd, struct memory_
 	}
 	
 	activate_interrupts();
-    
+	
+	while(task_list.next != &task_list);
+	lock_task();
+	clear();
+	puts("All tasks have been terminated.");
+	unlock_task();
+	
 }

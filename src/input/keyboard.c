@@ -1,6 +1,6 @@
 #include "keyboard.h"
 
-volatile uint8_t key_buffer = 0;
+uint8_t key_buffer = 0;
 
 uint8_t shift = 0;
 uint8_t capslock = 0;

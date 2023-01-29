@@ -1,12 +1,13 @@
 #include "common.h"
 #include "terminal.h"
 
+extern void stdout_write(char* buf, uint64_t size);
+
 void sys_write(uint64_t fd, void* buf, uint64_t size) {
-	
 	
 	if(fd == 0) { // STDOUT
 		
-		for(uint64_t i = 0; i < size; i++) terminal->putc(terminal, ((char*)buf)[i]);
+		stdout_write(buf, size);
 		
 	}
 	
